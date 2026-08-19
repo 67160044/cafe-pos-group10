@@ -1,0 +1,15 @@
+{
+  "name": "cafe-pos-system",
+  "version": "1.0.0",
+  "description": "Cafe POS System - Coding Sprint 1 (Workshop wk05)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.10.0",
+    "dotenv": "^16.4.5"
+  }
+}

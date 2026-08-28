@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { Order } = require("../models/Order");
 const VALID_PAYMENT_METHODS = ["cash", "credit", "qr"];
 
 exports.createOrder = async (req, res) => {
@@ -38,11 +39,16 @@ exports.createOrder = async (req, res) => {
     return res.status(400).json({ error: "paymentMethod ไม่ถูกต้องหรือไม่ได้ระบุ" });
   }
 
-  // คำนวณ totalAmount ฝั่ง Backend เสมอ (US-01)
-  const totalAmount = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // สร้าง Order object จาก Class ตามหลัก OOP (Encapsulation)
+  const order = new Order(paymentMethod);
+  items.forEach((item) => order.addItem(item, item.quantity));
+
+  if (!order.submit()) {
+    return res.status(400).json({ error: "ต้องมีรายการสินค้าอย่างน้อย 1 รายการ" });
+  }
+
+  // คำนวณ totalAmount ผ่าน Method ของ Class Order เสมอ
+  const totalAmount = order.calculateTotal();
 
   try {
     const [result] = await db.query(

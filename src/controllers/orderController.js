@@ -1,74 +1,90 @@
-const db = require("../config/db");
-const { Order } = require("../models/Order");
-const VALID_PAYMENT_METHODS = ["cash", "credit", "qr"];
+// src/controllers/orderController.js (ปรับปรุงจาก Sprint 1 ตาม schema wk07.md ให้เรียกผ่าน Model)
+const menuModel = require("../models/menuModel");
+const orderModel = require("../models/orderModel");
 
 exports.createOrder = async (req, res) => {
-  const { items, paymentMethod } = req.body;
+  const { items, paymentMethod, employeeId, branchId } = req.body;
 
-  // 1. Validate items (Exception 1a - US-03)
   if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: "ต้องมีรายการสินค้าอย่างน้อย 1 รายการ" });
+    return res
+      .status(400)
+      .json({ error: "ต้องมีรายการสินค้าอย่างน้อย 1 รายการ" });
   }
-
-  // 2. Validate name (Exception 1b - US-03)
-  const hasInvalidName = items.some(
-    (item) => typeof item.name !== "string" || item.name.trim() === ""
+  if (!branchId || !employeeId || !paymentMethod) {
+    return res
+      .status(400)
+      .json({ error: "ต้องระบุ branchId, employeeId, paymentMethod" });
+  }
+  const hasInvalidItem = items.some(
+    (item) =>
+      typeof item.menuId !== "number" ||
+      typeof item.quantity !== "number" ||
+      item.quantity <= 0,
   );
-  if (hasInvalidName) {
-    return res.status(400).json({ error: "ต้องระบุชื่อสินค้าให้ครบทุกรายการ" });
+  if (hasInvalidItem) {
+    // ต้องเช็คชนิดข้อมูลตรงนี้ ไม่ใช่แค่เช็คว่ามีค่า เพราะ "2" + "3" ในภายหลัง
+    // จะกลายเป็น string concatenation ("23") ไม่ใช่ผลรวมตัวเลข (5)
+    // ทำให้การเช็คสต็อกผิดพลาดแบบเงียบๆ หาก frontend ส่ง quantity มาเป็น string
+    return res
+      .status(400)
+      .json({ error: "menuId และ quantity ของทุกรายการต้องเป็นตัวเลข" });
   }
-
-  // 3. Validate price (Exception 1c - US-03)
-  const hasInvalidPrice = items.some(
-    (item) => !Number.isFinite(item.price) || item.price <= 0
-  );
-  if (hasInvalidPrice) {
-    return res.status(400).json({ error: "price ต้องมากกว่า 0" });
-  }
-
-  // 4. Validate quantity (Exception 1d - US-03)
-  const hasInvalidQuantity = items.some(
-    (item) => !Number.isInteger(item.quantity) || item.quantity <= 0
-  );
-  if (hasInvalidQuantity) {
-    return res.status(400).json({ error: "quantity ต้องมากกว่า 0" });
-  }
-
-  // 5. Validate paymentMethod (Exception 2a - US-02)
-  if (!VALID_PAYMENT_METHODS.includes(paymentMethod)) {
-    return res.status(400).json({ error: "paymentMethod ไม่ถูกต้องหรือไม่ได้ระบุ" });
-  }
-
-  // สร้าง Order object จาก Class ตามหลัก OOP (Encapsulation)
-  const order = new Order(paymentMethod);
-  items.forEach((item) => order.addItem(item, item.quantity));
-
-  if (!order.submit()) {
-    return res.status(400).json({ error: "ต้องมีรายการสินค้าอย่างน้อย 1 รายการ" });
-  }
-
-  // คำนวณ totalAmount ผ่าน Method ของ Class Order เสมอ
-  const totalAmount = order.calculateTotal();
 
   try {
-    const [result] = await db.query(
-      "INSERT INTO orders (payment_method, total_amount, created_at) VALUES (?, ?, NOW())",
-      [paymentMethod, totalAmount]
-    );
+    // รวมจำนวนของรายการที่เป็นเมนูเดียวกัน ก่อนเช็คสต็อก
+    // ป้องกันกรณีสั่งเมนูเดียวกันหลายบรรทัดแล้วแต่ละบรรทัดเช็คผ่านแยกกัน
+    // ทั้งที่ผลรวมทั้งหมดเกินสต็อกจริง
+    const quantityByMenuId = new Map();
+    for (const item of items) {
+      quantityByMenuId.set(
+        item.menuId,
+        (quantityByMenuId.get(item.menuId) || 0) + item.quantity,
+      );
+    }
 
-    res.status(201).json({ orderId: result.insertId, totalAmount });
+    const menuIds = [...quantityByMenuId.keys()];
+    // กรองด้วย branch_id ด้วยเสมอ ไม่ใช่แค่ menu_id — เมนูของแต่ละสาขาเป็นคนละแถวกัน
+    // ตาม wk07.md หัวข้อ 3.2 (schema ตาราง menu_item) หาก client ส่ง menuId ของสาขาอื่นมาปน
+    // แถวนั้นจะไม่ถูกดึงเข้า menuMap เลย แล้วเงื่อนไข !menu ด้านล่างจะปฏิเสธออเดอร์ด้วย 400 โดยอัตโนมัติ
+    const menuRows = await menuModel.findManyForStockCheck(menuIds, branchId);
+    const menuMap = new Map(menuRows.map((row) => [row.menu_id, row]));
+
+    for (const [menuId, totalQuantity] of quantityByMenuId) {
+      const menu = menuMap.get(menuId);
+      if (!menu || menu.stock_quantity < totalQuantity) {
+        return res.status(400).json({
+          error: `สต็อกไม่เพียงพอสำหรับเมนู id ${menuId}`,
+        });
+      }
+    }
+
+    const orderId = await orderModel.create(branchId, employeeId, paymentMethod);
+
+    for (const item of items) {
+      const menu = menuMap.get(item.menuId);
+      await orderModel.addItem(orderId, item.menuId, item.quantity, menu.price);
+      // ไม่ต้องเพิ่ม branchId ตรงนี้ซ้ำอีก เพราะ item.menuId ที่วนอยู่นี้
+      // ผ่านการกรองด้วย branch_id มาแล้วที่ findManyForStockCheck ด้านบน
+      // ต่างจาก updateMenu/deleteMenu ที่รับ menu_id ตรงจาก req.params โดยยังไม่ผ่านการกรองใด ๆ
+      await menuModel.deductStock(item.menuId, item.quantity);
+    }
+
+    const lowStockMenuIds = [];
+    for (const [menuId, totalQuantity] of quantityByMenuId) {
+      const menu = menuMap.get(menuId);
+      if (menu.stock_quantity - totalQuantity < 10) {
+        lowStockMenuIds.push(menuId);
+      }
+    }
+    if (lowStockMenuIds.length > 0) {
+      // ตัวอย่างขั้นต่ำ: บันทึกลง log ก่อน ส่วนการแจ้งเตือนจริง (อีเมล/LINE Notify)
+      // เป็นหัวข้อขยายผลที่ไม่บังคับสำหรับ Sprint 2
+      console.warn("สต็อกใกล้หมด menu_id:", lowStockMenuIds);
+    }
+
+    res.status(201).json({ orderId, lowStockMenuIds });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการบันทึกออเดอร์" });
-  }
-};
-
-exports.getAllOrders = async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM orders");
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลออเดอร์" });
   }
 };

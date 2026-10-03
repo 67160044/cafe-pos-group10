@@ -15,9 +15,6 @@ exports.deductStock = async (menuId, quantity) => {
     [quantity, menuId],
   );
 };
-
-// ---- ส่วน CRUD เมนู ----
-
 exports.findAllByBranch = async (branchId) => {
   const [rows] = await db.query(
     "SELECT * FROM menu_item WHERE branch_id = ?",

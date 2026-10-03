@@ -88,3 +88,12 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ error: "เกิดข้อผิดพลาดในการบันทึกออเดอร์" });
   }
 };
+exports.getAllOrders = async (req, res) => {
+  try {
+    const rows = await orderModel.findAll();
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการดึงข้อมูลออเดอร์" });
+  }
+};

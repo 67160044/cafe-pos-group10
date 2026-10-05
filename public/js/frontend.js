@@ -439,19 +439,26 @@ $("btnCheckout").onclick = async () => {
   };
 
   const btn = $("btnCheckout");
+  const statusEl = $("checkoutStatus");
+  statusEl.textContent = "";
   btn.disabled = true;
   btn.textContent = "กำลังบันทึกออเดอร์...";
 
   const res = await api("POST", "/api/orders", payload);
-  btn.disabled = false;
+  btn.disabled = cart.length === 0;
   btn.textContent = "ยืนยันการชำระเงิน / ออกใบเสร็จ";
 
-  const orderId =
-    res.ok && res.data?.orderId
-      ? res.data.orderId
-      : Math.floor(1000 + Math.random() * 9000);
+  if (!res.ok || !res.data?.orderId) {
+    statusEl.className = "status bad";
+    statusEl.textContent = isMissing(res)
+      ? "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองอีกครั้ง"
+      : `บันทึกออเดอร์ไม่สำเร็จ: ${getErrorMessage(res)} กรุณาลองอีกครั้ง`;
+    return;
+  }
 
-  showReceiptModal(orderId, paymentMethod);
+  statusEl.className = "status";
+  statusEl.textContent = "";
+  showReceiptModal(res.data.orderId, paymentMethod);
 };
 
 function showReceiptModal(orderId, paymentMethod) {

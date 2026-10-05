@@ -66,12 +66,13 @@ exports.updateMenu = async (req, res) => {
   // ข้างต้นตรงกับความหมายของ PATCH ตามหลัก REST ไม่ใช่ PUT (ซึ่งควรบังคับส่งข้อมูลครบทุก field)
   // สังเกตไว้ก่อน — เป็นตัวอย่างหนึ่งของจุดที่โค้ดทำงานได้จริงแต่ไม่สอดคล้องกับความหมายของตัวเอง
   // จะกลับมาตรวจสอบจุดลักษณะนี้อย่างเป็นระบบอีกครั้งในสัปดาห์ที่ 14 (การตรวจสอบคุณภาพซอฟต์แวร์)
-  const { branchId, name, price, stockQuantity } = req.body;
+  const { branchId, categoryId, name, price, stockQuantity } = req.body;
   if (!branchId) {
     return res.status(400).json({ error: "ต้องระบุ branchId" });
   }
   try {
     const affectedRows = await menuModel.updateFields(req.params.id, branchId, {
+      categoryId,
       name,
       price,
       stockQuantity,

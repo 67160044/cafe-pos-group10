@@ -20,7 +20,10 @@ exports.deductStock = async (menuId, quantity) => {
 
 exports.findAllByBranch = async (branchId) => {
   const [rows] = await db.query(
-    "SELECT * FROM menu_item WHERE branch_id = ?",
+    `SELECT m.*, c.name AS category_name 
+     FROM menu_item m 
+     LEFT JOIN category c ON m.category_id = c.category_id 
+     WHERE m.branch_id = ?`,
     [branchId],
   );
   return rows;
@@ -28,7 +31,10 @@ exports.findAllByBranch = async (branchId) => {
 
 exports.findByIdAndBranch = async (menuId, branchId) => {
   const [rows] = await db.query(
-    "SELECT * FROM menu_item WHERE menu_id = ? AND branch_id = ?",
+    `SELECT m.*, c.name AS category_name 
+     FROM menu_item m 
+     LEFT JOIN category c ON m.category_id = c.category_id 
+     WHERE m.menu_id = ? AND m.branch_id = ?`,
     [menuId, branchId],
   );
   return rows[0];
@@ -42,15 +48,16 @@ exports.create = async (branchId, categoryId, name, price, stockQuantity) => {
   return result.insertId;
 };
 
-exports.updateFields = async (menuId, branchId, { name, price, stockQuantity }) => {
+exports.updateFields = async (menuId, branchId, { categoryId, name, price, stockQuantity }) => {
   // branch_id กรองคู่กับ menu_id เสมอ ป้องกัน IDOR ตามที่อธิบายไว้ข้างต้น
   const [result] = await db.query(
     `UPDATE menu_item
-     SET name = COALESCE(?, name),
+     SET category_id = COALESCE(?, category_id),
+         name = COALESCE(?, name),
          price = COALESCE(?, price),
          stock_quantity = COALESCE(?, stock_quantity)
      WHERE menu_id = ? AND branch_id = ?`,
-    [name ?? null, price ?? null, stockQuantity ?? null, menuId, branchId],
+    [categoryId ?? null, name ?? null, price ?? null, stockQuantity ?? null, menuId, branchId],
   );
   return result.affectedRows;
 };

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cafe POS System - ระบบบริหารจัดการร้านกาแฟ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/frontend.css">
+</head>
+<body>
+  <!-- Header / Navigation (Single Page Navigation ด้วย data-v) -->
+  <header>
+    <nav class="nav" aria-label="เมนูหลัก">
+      <span class="logo">☕ Cafe POS System</span>
+      <button class="tab" data-v="order" type="button" aria-current="page">รับออเดอร์</button>
+      <button class="tab" data-v="menu" type="button">จัดการเมนู</button>
+      <button class="tab" data-v="report" type="button">รายงานยอดขาย</button>
+      <div class="branch">
+        <label for="branch">สาขา</label>
+        <select id="branch" aria-label="เลือกสาขา"></select>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="note" id="note" role="status">เชื่อมต่อ API บางส่วนไม่ได้ หรือ Report API ยังไม่พร้อมใช้งาน</div>
+
+    <!-- ====================================================================
+         SECTION 1: รับออเดอร์ (data-v="order")
+         ==================================================================== -->
+    <section id="v-order">
+      <div class="pos-layout">
+        <!-- ฝั่งซ้าย: เมนูสินค้าและการปรับแต่ง -->
+        <div class="menu-section">
+          <!-- กริดเมนู 3 คอลัมน์ -->
+          <div class="menu-grid" id="menuGrid">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- แผงปรับแต่งเครื่องดื่ม -->
+          <div class="custom-panel disabled" id="customPanel">
+            <div class="custom-header">
+              <h3 id="customTitle">กรุณาเลือกเมนูจากด้านบน</h3>
+              <span class="custom-price" id="customPrice">- ฿</span>
+            </div>
+
+            <!-- ขนาดแก้ว -->
+            <div class="option-row">
+              <span class="option-label">ขนาดแก้ว:</span>
+              <div class="btn-group">
+                <button type="button" class="opt-btn" data-size="S" data-extra="0">S</button>
+                <button type="button" class="opt-btn active" data-size="M" data-extra="0">M</button>
+                <button type="button" class="opt-btn" data-size="L" data-extra="10">L (+10฿)</button>
+              </div>
+            </div>
+
+            <!-- ความหวาน -->
+            <div class="option-row">
+              <span class="option-label">ความหวาน:</span>
+              <div class="btn-group">
+                <button type="button" class="opt-btn" data-sweet="0%">0%</button>
+                <button type="button" class="opt-btn" data-sweet="25%">25%</button>
+                <button type="button" class="opt-btn active" data-sweet="50%">50%</button>
+                <button type="button" class="opt-btn" data-sweet="100%">100%</button>
+              </div>
+            </div>
+
+            <!-- ท็อปปิ้ง -->
+            <div class="option-row">
+              <span class="option-label">Topping:</span>
+              <div class="check-group">
+                <label class="check-label">
+                  <input type="checkbox" class="topping-chk" value="ไข่มุก" data-price="10">
+                  ไข่มุก (+10฿)
+                </label>
+                <label class="check-label">
+                  <input type="checkbox" class="topping-chk" value="ครีมชีส" data-price="15">
+                  ครีมชีส (+15฿)
+                </label>
+              </div>
+            </div>
+
+            <!-- จำนวนแก้ว -->
+            <div class="option-row">
+              <span class="option-label">จำนวน:</span>
+              <div class="stepper">
+                <button type="button" id="qtyMinus">-</button>
+                <input type="text" id="qtyInput" value="1" readonly>
+                <button type="button" id="qtyPlus">+</button>
+              </div>
+            </div>
+
+            <!-- ปุ่มเพิ่มลงตะกร้า -->
+            <button type="button" class="btn-add-item" id="btnAddItem" disabled>
+              + เพิ่มลงรายการ
+            </button>
+          </div>
+        </div>
+
+        <!-- ฝั่งขวา: รายการออเดอร์และการชำระเงิน -->
+        <aside class="cart-card">
+          <!-- เบอร์สมาชิก -->
+          <div class="member-section">
+            <label class="member-label" for="memberPhone">เบอร์สมาชิก (Text Input 10 หลัก)</label>
+            <div class="member-box">
+              <input type="text" id="memberPhone" maxlength="10" placeholder="กรอกเบอร์ 10 หลัก">
+              <button type="button" id="btnSearchMember">ค้นหา</button>
+            </div>
+            <div class="member-status" id="memberStatus"></div>
+          </div>
+
+          <!-- หัวข้อรายการออเดอร์ -->
+          <div class="cart-header">
+            <h3>รายการออเดอร์</h3>
+            <button type="button" class="clear-btn" id="clearCartBtn">ล้างรายการทั้งหมด</button>
+          </div>
+
+          <!-- รายการสินค้าในตะกร้า -->
+          <div class="cart-items" id="cartItems">
+            <div class="cart-empty">ไม่มีรายการในตะกร้า</div>
+          </div>
+
+          <!-- สรุปยอดเงิน -->
+          <div class="calc-row">
+            <span>ยอดรวมสินค้า:</span>
+            <span id="subtotalVal">0.00 ฿</span>
+          </div>
+          <div class="calc-row discount">
+            <span>ส่วนลดสมาชิก (5%):</span>
+            <span id="discountVal">-0.00 ฿</span>
+          </div>
+          <div class="calc-row">
+            <span>VAT (7%):</span>
+            <span id="vatVal">0.00 ฿</span>
+          </div>
+
+          <div class="calc-divider"></div>
+
+          <div class="total-row">
+            <span class="title">ยอดชำระสุทธิ:</span>
+            <span class="price" id="netTotalVal">0.00 ฿</span>
+          </div>
+
+          <!-- วิธีชำระเงิน -->
+          <div class="pay-methods">
+            <div class="pay-title">วิธีชำระเงิน:</div>
+            <div class="pay-radios">
+              <label class="pay-label">
+                <input type="radio" name="paymentMethod" value="cash" checked>
+                เงินสด (Cash)
+              </label>
+              <label class="pay-label">
+                <input type="radio" name="paymentMethod" value="promptpay">
+                QR Code
+              </label>
+            </div>
+          </div>
+
+          <!-- ปุ่มชำระเงิน -->
+          <button type="button" class="btn-checkout" id="btnCheckout" disabled>
+            ยืนยันการชำระเงิน / ออกใบเสร็จ
+          </button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 2: จัดการเมนู (data-v="menu")
+         ==================================================================== -->
+    <section id="v-menu" hidden>
+      <h1>จัดการเมนู</h1>
+      <div class="two">
+        <!-- ตารางรายการเมนู -->
+        <div class="card">
+          <div class="bar">
+            <input type="text" id="q" placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู">
+            <select id="catF" aria-label="กรองหมวด">
+              <option value="">ทุกหมวด</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ชื่อเมนู</th>
+                <th>หมวด</th>
+                <th class="n">ราคา</th>
+                <th class="n">สต็อก</th>
+                <th>สถานะ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="mbody"></tbody>
+          </table>
+          <p class="err" id="mempty"></p>
+        </div>
+
+        <!-- ฟอร์มเพิ่ม/แก้ไขเมนู -->
+        <form class="card" id="mform" novalidate>
+          <h2 id="mtitle">เพิ่มเมนูใหม่</h2>
+
+          <label for="mn">ชื่อเมนู</label>
+          <input id="mn" type="text" maxlength="50" placeholder="ชาเขียวนม">
+          <p class="err"></p>
+
+          <label for="mc">หมวด</label>
+          <select id="mc">
+            <option value="">เลือกหมวด</option>
+            <option value="1">ชา</option>
+            <option value="2">กาแฟ</option>
+            <option value="3">นม/โกโก้</option>
+            <option value="4">อื่น ๆ</option>
+          </select>
+          <p class="err"></p>
+
+          <label for="mp">ราคา (บาท)</label>
+          <input id="mp" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="50">
+          <p class="err"></p>
+
+          <label for="ms">สต็อก (แก้ว)</label>
+          <input id="ms" type="number" inputmode="numeric" min="0" step="1" value="0">
+          <p class="err"></p>
+
+          <label class="check">
+            <input type="checkbox" id="ma" checked> เปิดขายเมนูนี้
+          </label>
+
+          <button class="btn pri wide" id="msave" type="submit" style="margin-top:12px" disabled>บันทึกเมนู</button>
+          <button class="btn wide" id="mcancel" type="button" style="margin-top:8px;font-weight:500" hidden>ยกเลิกการแก้ไข</button>
+
+          <p class="hint" id="mhint"></p>
+          <div class="status" id="mstatus" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SECTION 3: รายงานยอดขาย (data-v="report")
+         ==================================================================== -->
+    <section id="v-report" hidden>
+      <h1>รายงานยอดขาย (Summary Report)</h1>
+      <form class="filters" id="rform" novalidate>
+        <div class="f">
+          <label for="from">วันที่เริ่มต้น</label>
+          <input type="date" id="from">
+        </div>
+        <div class="f">
+          <label for="to">วันที่สิ้นสุด</label>
+          <input type="date" id="to">
+        </div>
+        <div class="f">
+          <label for="top">เมนูขายดี</label>
+          <select id="top">
+            <option value="all">ทั้งช่วงที่เลือก</option>
+            <option value="week">7 วันล่าสุด</option>
+            <option value="day">วันล่าสุด</option>
+          </select>
+        </div>
+        <button class="btn pri" type="submit">ดูรายงาน</button>
+        <button class="btn" type="button" id="print">พิมพ์</button>
+      </form>
+
+      <p class="err" id="rerr" role="alert"></p>
+
+      <div class="kpis">
+        <div>
+          <small>ยอดขายรวม (บาท)</small>
+          <b id="k1">-</b>
+        </div>
+        <div>
+          <small>จำนวนออเดอร์</small>
+          <b id="k2">-</b>
+        </div>
+      </div>
+
+      <div class="two" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+        <div class="card">
+          <h2>รายได้แยกสาขา</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>สาขา</th>
+                <th class="n">ออเดอร์</th>
+                <th class="n">ยอดขาย</th>
+              </tr>
+            </thead>
+            <tbody id="rb"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>เมนูขายดี</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>เมนู</th>
+                <th class="n">แก้ว</th>
+                <th class="n">ยอดขาย</th>
+              </tr>
+            </thead>
+            <tbody id="rt"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Receipt Modal Popup -->
+  <div class="modal-overlay" id="receiptModal" hidden>
+    <div class="receipt-card">
+      <div class="receipt-header">
+        <h2>☕ Cafe POS</h2>
+        <div class="receipt-meta">
+          <div id="recBranch">สาขา: สยาม</div>
+          <div id="recOrderId">ใบเสร็จรับเงิน #00001</div>
+          <div id="recDateTime">2026-10-05 22:00:00</div>
+          <div>วิธีชำระ: <span id="recPayMethod">เงินสด</span></div>
+        </div>
+      </div>
+
+      <div class="receipt-body" id="recItems">
+        <!-- Rendered items -->
+      </div>
+
+      <div class="total-row" style="margin-top: 10px;">
+        <span class="title" style="font-size: 1.1rem;">ยอดชำระทั้งหมด:</span>
+        <span class="price" id="recNetTotal" style="font-size: 1.3rem;">0.00 ฿</span>
+      </div>
+
+      <div class="receipt-actions">
+        <button type="button" id="btnPrintReceipt" style="background: #f1f5f9; border: 1px solid var(--line);">พิมพ์ใบเสร็จ</button>
+        <button type="button" id="btnCloseReceipt" style="background: #1e60d5; color: #fff; border: 0;">ทำรายการใหม่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unified Application JavaScript -->
+  <script src="js/frontend.js"></script>
+</body>
+</html>

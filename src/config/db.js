@@ -1,3 +1,4 @@
+require("dotenv").config();
 const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
@@ -9,6 +10,12 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   charset: "utf8mb4",
+  timezone: "+07:00",
+});
+
+// กำหนด Timezone เป็นเวลาประเทศไทย (UTC+7 / Asia/Bangkok) ทุก Connection
+pool.pool.on("connection", (connection) => {
+  connection.query("SET time_zone = '+07:00'");
 });
 
 module.exports = pool;

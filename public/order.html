@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ขายหน้าร้าน (POS) - Whatever Cafe POS</title>
+  <link rel="stylesheet" href="/css/whatever-cafe.css">
+</head>
+<body>
+
+  <!-- Whatever Cafe Top Navbar -->
+  <header id="wnHeader"></header>
+
+  <main class="wn-container" style="padding-top: 16px; padding-bottom: 16px;">
+    <div class="wn-pos-grid">
+      
+      <!-- ฝั่งซ้าย: รายการเมนูและตัวกรอง -->
+      <section class="wn-menu-column">
+        <div class="wn-menu-toolbar">
+          <div class="wn-search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="menuSearch" class="wn-input" placeholder="ค้นหาเมนูเครื่องดื่ม... (เช่น ชาไทย, ลาเต้)">
+          </div>
+
+          <div class="wn-category-pills" id="categoryPills">
+            <button class="wn-cat-pill active" data-cat="all">ทั้งหมด</button>
+            <button class="wn-cat-pill" data-cat="2">กาแฟ</button>
+            <button class="wn-cat-pill" data-cat="1">ชา</button>
+            <button class="wn-cat-pill" data-cat="3">นม / โกโก้</button>
+            <button class="wn-cat-pill" data-cat="4">อื่น ๆ</button>
+          </div>
+        </div>
+
+        <div class="wn-product-grid-wrap">
+          <div class="wn-product-grid" id="productGrid">
+            <!-- เมนูจะถูกโหลดและเรนเดอร์โดย order.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ฝั่งขวา: รายการออเดอร์และการคิดเงิน (Order Slip) -->
+      <aside class="wn-cart-column">
+        <div class="wn-cart-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="wn-table-badge">A101 หน้าร้าน</span>
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--wn-dark); margin: 0;">รายการสั่งซื้อ</h3>
+          </div>
+          <button type="button" id="btnClearCart" class="wn-btn-clear-slip" title="ล้างรายการบิล">
+            ล้างบิล
+          </button>
+        </div>
+
+        <!-- ส่วนสมาชิก Cafe Club ลด 5% -->
+        <div class="wn-member-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 12.5px; font-weight: 600; color: #166534;">
+              สมาชิก Cafe Club (รับส่วนลด 5%)
+            </span>
+            <span id="memberBadge" class="wn-member-badge" style="display: none;">✓ สมาชิกยืนยันแล้ว</span>
+          </div>
+          <div class="wn-member-input-row">
+            <input type="text" id="memberPhone" class="wn-input" maxlength="10" placeholder="เบอร์โทร 10 หลัก (เช่น 0812345678)">
+            <button type="button" id="btnSearchMember" class="wn-btn wn-btn-secondary" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;">
+              ตรวจสอบ
+            </button>
+            <button type="button" id="btnClearMember" class="wn-btn wn-btn-outline-danger" style="padding: 6px 10px; font-size: 12px; display: none;" title="ยกเลิกการใช้สิทธิ์สมาชิก">
+              ล้าง
+            </button>
+          </div>
+          <div id="memberStatus" class="wn-member-status" style="display: none;"></div>
+        </div>
+
+        <!-- รายการสินค้าในตะกร้า -->
+        <div class="wn-cart-items-wrap" id="cartItems">
+          <div class="wn-cart-empty">
+            <span>ยังไม่มีรายการสินค้าในบิล</span>
+            <small style="color: var(--wn-gray-light);">แตะเลือกเมนูเครื่องดื่มจากฝั่งซ้ายเพื่อสั่งซื้อ</small>
+          </div>
+        </div>
+
+        <!-- คำนวณสรุปยอดเงิน -->
+        <div class="wn-cart-summary">
+          <div class="wn-calc-line">
+            <span>ยอดรวมสินค้า:</span>
+            <span id="subtotalText">0.00 ฿</span>
+          </div>
+          <div class="wn-calc-line discount">
+            <span>ส่วนลดสมาชิก (5%):</span>
+            <span id="discountText">-0.00 ฿</span>
+          </div>
+          <div class="wn-calc-line">
+            <span>ภาษีมูลค่าเพิ่ม (VAT 7%):</span>
+            <span id="vatText">0.00 ฿</span>
+          </div>
+
+          <div class="wn-calc-divider"></div>
+
+          <div class="wn-total-line">
+            <span>ยอดสุทธิ (Total):</span>
+            <span class="wn-total-amount" id="netTotalText">0.00 ฿</span>
+          </div>
+        </div>
+
+        <!-- ปุ่มสั่งการด้านล่าง: มีแค่ 2 Box (บน: สมัครสมาชิก, ล่าง: ชำระเงิน) -->
+        <div class="wn-cart-actions">
+          <button type="button" id="btnOpenRegisterMember" class="wn-btn-member-action" title="คลิกเพื่อสมัครสมาชิกใหม่ หรือระบุเบอร์สมาชิกลด 5%">
+            สมัครสมาชิก Cafe Club (รับส่วนลด 5%)
+          </button>
+          <button type="button" id="btnPayMain" class="wn-btn-pay-main" disabled>
+            <span>ชำระเงิน</span>
+            <span id="btnPayTotalText">0.00 ฿</span>
+          </button>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       MODAL 1: ปรับแต่งเครื่องดื่ม (Size, Sweetness, Topping, Quantity)
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="customModal">
+    <div class="wn-modal">
+      <div class="wn-modal-header">
+        <div>
+          <h3 class="wn-modal-title" id="customDrinkTitle">ชื่อเมนู</h3>
+          <span style="font-size: 13px; color: var(--wn-green); font-weight: 600;" id="customDrinkPrice">50 ฿</span>
+        </div>
+        <button type="button" class="wn-modal-close" id="btnCloseCustom">&times;</button>
+      </div>
+
+      <div class="wn-modal-body">
+        <!-- ขนาดแก้ว -->
+        <div class="wn-opt-group">
+          <label class="wn-opt-label">ขนาดแก้ว (Cup Size):</label>
+          <div class="wn-chips-group" id="sizeChips">
+            <button type="button" class="wn-chip" data-size="S" data-extra="0">S (แก้วเล็ก)</button>
+            <button type="button" class="wn-chip active" data-size="M" data-extra="0">M (แก้วกลาง)</button>
+            <button type="button" class="wn-chip" data-size="L" data-extra="10">L (+10 ฿)</button>
+          </div>
+        </div>
+
+        <!-- ระดับความหวาน -->
+        <div class="wn-opt-group">
+          <label class="wn-opt-label">ระดับความหวาน (Sweetness):</label>
+          <div class="wn-chips-group" id="sweetChips">
+            <button type="button" class="wn-chip" data-sweet="0%">ไม่หวาน 0%</button>
+            <button type="button" class="wn-chip" data-sweet="25%">หวานน้อย 25%</button>
+            <button type="button" class="wn-chip active" data-sweet="50%">หวานปกติ 50%</button>
+            <button type="button" class="wn-chip" data-sweet="100%">หวานมาก 100%</button>
+          </div>
+        </div>
+
+        <!-- ท็อปปิ้ง -->
+        <div class="wn-opt-group">
+          <label class="wn-opt-label">ท็อปปิ้ง (Toppings):</label>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <label class="wn-check-label">
+              <input type="checkbox" class="topping-check" value="ไข่มุก" data-price="10">
+              ไข่มุก (+10 ฿)
+            </label>
+            <label class="wn-check-label">
+              <input type="checkbox" class="topping-check" value="ครีมชีส" data-price="15">
+              ครีมชีส (+15 ฿)
+            </label>
+            <label class="wn-check-label">
+              <input type="checkbox" class="topping-check" value="บุกบราวน์ชูการ์" data-price="10">
+              บุกบราวน์ชูการ์ (+10 ฿)
+            </label>
+          </div>
+        </div>
+
+        <!-- จำนวนแก้ว -->
+        <div class="wn-opt-group">
+          <label class="wn-opt-label">จำนวน (Quantity):</label>
+          <div class="wn-qty-stepper" style="width: 140px; height: 36px;">
+            <button type="button" class="wn-qty-btn" id="customQtyMinus" style="width: 40px; font-size: 18px;">-</button>
+            <input type="text" id="customQtyVal" class="wn-qty-val" value="1" readonly style="font-size: 16px;">
+            <button type="button" class="wn-qty-btn" id="customQtyPlus" style="width: 40px; font-size: 18px;">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wn-modal-footer">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelCustom">ยกเลิก</button>
+        <button type="button" class="wn-btn wn-btn-primary" id="btnAddToCart">
+          + เพิ่มลงบิล (<span id="customFinalTotal">50.00 ฿</span>)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: ชำระเงินสด (Cash Calculator)
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="cashModal">
+    <div class="wn-modal" style="max-width: 420px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title">ชำระด้วยเงินสด (Cash)</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseCash">&times;</button>
+      </div>
+
+      <div class="wn-modal-body">
+        <div style="text-align: center; margin-bottom: 12px;">
+          <small style="color: var(--wn-gray);">ยอดที่ต้องชำระสุทธิ</small>
+          <div style="font-size: 28px; font-weight: 800; color: var(--wn-green);" id="cashModalDueText">0.00 ฿</div>
+        </div>
+
+        <div class="wn-form-group">
+          <label class="wn-form-label">จำนวนเงินที่รับมา (บาท):</label>
+          <input type="number" id="cashReceivedInput" class="wn-input" style="font-size: 20px; font-weight: 700; text-align: right;" placeholder="0.00">
+        </div>
+
+        <!-- Quick Cash Presets -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+          <button type="button" class="wn-btn wn-btn-secondary cash-preset" data-val="exact">พอดี</button>
+          <button type="button" class="wn-btn wn-btn-secondary cash-preset" data-val="100">100 ฿</button>
+          <button type="button" class="wn-btn wn-btn-secondary cash-preset" data-val="500">500 ฿</button>
+          <button type="button" class="wn-btn wn-btn-secondary cash-preset" data-val="1000">1,000 ฿</button>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--wn-border); border-radius: var(--wn-radius); padding: 14px; text-align: center; margin-top: 8px;">
+          <small style="color: var(--wn-gray);">เงินทอน (Change)</small>
+          <div style="font-size: 24px; font-weight: 700; color: #2563eb;" id="cashChangeText">0.00 ฿</div>
+        </div>
+      </div>
+
+      <div class="wn-modal-footer">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelCash">ยกเลิก</button>
+        <button type="button" class="wn-btn wn-btn-primary" id="btnConfirmCash" disabled>
+          บันทึกการชำระเงิน & ออกใบเสร็จ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3: ชำระด้วย QR Code (PromptPay)
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="qrModal">
+    <div class="wn-modal" style="max-width: 400px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title">สแกน QR ชำระเงิน (PromptPay)</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseQR">&times;</button>
+      </div>
+
+      <div class="wn-modal-body" style="text-align: center;">
+        <div style="background: #0047BA; color: #ffffff; padding: 10px; border-radius: var(--wn-radius) var(--wn-radius) 0 0; font-weight: 700; letter-spacing: 0.5px;">
+          Thai QR Payment / พร้อมเพย์
+        </div>
+        <div style="border: 2px solid #0047BA; border-top: none; padding: 20px; border-radius: 0 0 var(--wn-radius) var(--wn-radius); background: #ffffff;">
+          <!-- Mockup QR Image / Graphic -->
+          <svg width="180" height="180" viewBox="0 0 200 200" style="margin: 0 auto; display: block;">
+            <rect width="200" height="200" fill="#ffffff" />
+            <!-- Outer Markers -->
+            <rect x="20" y="20" width="40" height="40" fill="#000000" />
+            <rect x="28" y="28" width="24" height="24" fill="#ffffff" />
+            <rect x="34" y="34" width="12" height="12" fill="#000000" />
+            <rect x="140" y="20" width="40" height="40" fill="#000000" />
+            <rect x="148" y="28" width="24" height="24" fill="#ffffff" />
+            <rect x="154" y="34" width="12" height="12" fill="#000000" />
+            <rect x="20" y="140" width="40" height="40" fill="#000000" />
+            <rect x="28" y="148" width="24" height="24" fill="#ffffff" />
+            <rect x="34" y="154" width="12" height="12" fill="#000000" />
+            <!-- QR Grid Pattern Mock -->
+            <rect x="70" y="25" width="8" height="8" fill="#000" />
+            <rect x="85" y="35" width="8" height="8" fill="#000" />
+            <rect x="100" y="25" width="8" height="8" fill="#000" />
+            <rect x="115" y="45" width="8" height="8" fill="#000" />
+            <rect x="75" y="75" width="50" height="50" fill="#0047BA" rx="6" />
+            <text x="100" y="105" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">PromptPay</text>
+            <rect x="30" y="80" width="8" height="8" fill="#000" />
+            <rect x="50" y="90" width="8" height="8" fill="#000" />
+            <rect x="140" y="80" width="8" height="8" fill="#000" />
+            <rect x="160" y="95" width="8" height="8" fill="#000" />
+            <rect x="80" y="140" width="8" height="8" fill="#000" />
+            <rect x="100" y="155" width="8" height="8" fill="#000" />
+            <rect x="130" y="145" width="8" height="8" fill="#000" />
+            <rect x="150" y="160" width="8" height="8" fill="#000" />
+          </svg>
+
+          <div style="font-size: 13px; color: var(--wn-gray); margin-top: 12px;">สแกนผ่านแอปธนาคารทุกแห่ง</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--wn-green); margin-top: 4px;" id="qrTotalText">0.00 ฿</div>
+        </div>
+      </div>
+
+      <div class="wn-modal-footer">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelQR">ยกเลิก</button>
+        <button type="button" class="wn-btn wn-btn-primary" id="btnConfirmQR">
+          รับชำระเงินเรียบร้อย & ออกใบเสร็จ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: เลือกช่องทางชำระเงิน (UI เลือกระหว่าง QR กับ เงินสด)
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="paymentChoiceModal">
+    <div class="wn-modal" style="max-width: 440px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title">เลือกช่องทางชำระเงิน</h3>
+        <button type="button" class="wn-modal-close" id="btnClosePaymentChoice">&times;</button>
+      </div>
+
+      <div class="wn-modal-body" style="padding: 20px 20px 24px 20px;">
+        <div style="text-align: center; margin-bottom: 18px;">
+          <small style="color: var(--wn-gray); font-size: 13px;">ยอดชำระสุทธิทั้งสิ้น</small>
+          <div style="font-size: 32px; font-weight: 800; color: var(--wn-orange); margin-top: 2px;" id="choiceDueAmountText">0.00 ฿</div>
+        </div>
+
+        <div class="wn-payment-choice-grid">
+          <!-- ตัวเลือก 1: สแกน QR PromptPay -->
+          <button type="button" id="btnSelectQR" class="wn-payment-method-card">
+            <div style="font-size: 15px; font-weight: 700; color: #0047ba;">QR PromptPay</div>
+            <div style="font-size: 11.5px; color: var(--wn-gray); margin-top: 4px;">สแกนจ่ายผ่านแอปธนาคาร</div>
+          </button>
+
+          <!-- ตัวเลือก 2: เงินสด Cash -->
+          <button type="button" id="btnSelectCash" class="wn-payment-method-card">
+            <div style="font-size: 15px; font-weight: 700; color: #166534;">เงินสด (Cash)</div>
+            <div style="font-size: 11.5px; color: var(--wn-gray); margin-top: 4px;">รับเงินสด & คำนวณเงินทอน</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="wn-modal-footer">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelPaymentChoice" style="width: 100%;">
+          ย้อนกลับ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: สมัครสมาชิก / ตรวจสอบสิทธิ์ Cafe Club
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="registerMemberModal">
+    <div class="wn-modal" style="max-width: 440px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title">สมาชิก Cafe Club</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseRegisterMember">&times;</button>
+      </div>
+
+      <div class="wn-modal-body">
+        <div style="background: var(--wn-orange-light); border: 1px solid var(--wn-orange-border); border-radius: var(--wn-radius); padding: 10px 14px; margin-bottom: 12px; font-size: 12.5px; color: #9a3412;">
+          สมาชิก Cafe Club รับสิทธิ์ส่วนลด <strong>5%</strong> ทันทีทุกออเดอร์
+        </div>
+
+        <form id="formRegisterMember" novalidate>
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="regMemberPhone">หมายเลขโทรศัพท์ (10 หลัก):</label>
+            <input type="tel" id="regMemberPhone" class="wn-input" maxlength="10" placeholder="เช่น 0812345678" required style="font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">
+          </div>
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="regMemberName">ชื่อ-นามสกุลสมาชิก:</label>
+            <input type="text" id="regMemberName" class="wn-input" placeholder="เช่น คุณสมศรี มีสุข" required>
+          </div>
+
+          <div id="regMemberMsg" style="display: none; padding: 8px 12px; border-radius: var(--wn-radius); font-size: 12px; margin-bottom: 10px;"></div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button type="button" class="wn-btn wn-btn-secondary" id="btnCheckExistingMember" style="flex: 1;">
+              ค้นหาเบอร์เดิม
+            </button>
+            <button type="submit" class="wn-btn wn-btn-primary" id="btnSubmitRegisterMember" style="flex: 1.2;">
+              สมัคร & ใช้สิทธิ์ทันที
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="wn-modal-footer">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelRegisterMember">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 4: ใบเสร็จรับเงิน (Whatever Cafe POS Thermal Slip)
+       ======================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="receiptModal">
+    <div class="wn-receipt-paper">
+      <div class="wn-receipt-header">
+        <div class="wn-receipt-brand">WHATEVER CAFE POS</div>
+        <div class="wn-receipt-sub">Whatever Cafe POS System</div>
+        <div class="wn-receipt-meta">
+          <div><strong>สาขา:</strong> <span id="recBranchName">สยาม</span></div>
+          <div><strong>เลขที่ใบเสร็จ:</strong> <span id="recOrderId">#00001</span></div>
+          <div><strong>วันที่ / เวลา:</strong> <span id="recDateTime">2026-10-17 12:00:00</span></div>
+          <div><strong>พนักงานแคชเชียร์:</strong> <span id="recCashierName">สมชาย</span></div>
+          <div><strong>การชำระเงิน:</strong> <span id="recPaymentMethod">เงินสด</span></div>
+          <div id="recMemberRow" style="display: none; color: #166534;"><strong>สมาชิก Cafe Club:</strong> <span id="recMemberName">-</span></div>
+        </div>
+      </div>
+
+      <div class="wn-receipt-items" id="recItemsList">
+        <!-- Rendered items -->
+      </div>
+
+      <div class="wn-receipt-totals">
+        <div class="wn-receipt-item-row">
+          <span>ยอดรวมสินค้า:</span>
+          <span id="recSubtotal">0.00 ฿</span>
+        </div>
+        <div class="wn-receipt-item-row" style="color: #16a34a;">
+          <span>ส่วนลดสมาชิก (5%):</span>
+          <span id="recDiscount">-0.00 ฿</span>
+        </div>
+        <div class="wn-receipt-item-row">
+          <span>ภาษีมูลค่าเพิ่ม (VAT 7%):</span>
+          <span id="recVat">0.00 ฿</span>
+        </div>
+        <div class="wn-receipt-item-row" style="font-size: 15px; font-weight: 700; border-top: 1px dashed #cbd5e1; padding-top: 6px; margin-top: 4px;">
+          <span>ยอดชำระสุทธิ:</span>
+          <span id="recNetTotal" style="color: var(--wn-green-dark);">0.00 ฿</span>
+        </div>
+      </div>
+
+      <div class="wn-receipt-footer">
+        <div>*** ขอบคุณที่ใช้บริการ ***</div>
+        <div style="margin-top: 4px;">Powered by Whatever Cafe POS</div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 20px;">
+        <button type="button" class="wn-btn wn-btn-secondary" id="btnPrintSlip" style="flex: 1;">
+          พิมพ์ใบเสร็จ
+        </button>
+        <button type="button" class="wn-btn wn-btn-primary" id="btnNewOrder" style="flex: 1;">
+          + รับออเดอร์ใหม่
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/order.js"></script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการระบบ (Admin HQ) - Whatever Cafe POS</title>
+  <link rel="stylesheet" href="/css/whatever-cafe.css">
+</head>
+<body>
+
+  <!-- Whatever Cafe Top POS Navbar -->
+  <header id="wnHeader"></header>
+
+  <main class="wn-container">
+    
+    <!-- Page Header -->
+    <div class="wn-page-header">
+      <div class="wn-page-title-group">
+        <h1>ศูนย์ควบคุมระบบ Whatever Cafe (สำนักงานใหญ่ HQ)</h1>
+        <p>บริหารจัดการข้อมูลพนักงานสาขา, สมาชิกระบบ Cafe Club & โปรโมชั่น, และข้อมูลสาขาทั้งหมด</p>
+      </div>
+
+      <button type="button" id="btnMainAdd" class="wn-btn wn-btn-primary">
+        <span>+</span> เพิ่มพนักงานใหม่
+      </button>
+    </div>
+
+    <!-- KPI Metric Cards Overview -->
+    <div class="wn-kpi-grid">
+      <div class="wn-kpi-card blue">
+        <div class="wn-kpi-details">
+          <small>สาขาที่เปิดให้บริการ</small>
+          <h2 id="kpiBranchesCount">0</h2>
+        </div>
+      </div>
+
+      <div class="wn-kpi-card green">
+        <div class="wn-kpi-details">
+          <small>พนักงานสาขา (Cashier & Barista)</small>
+          <h2 id="kpiStaffCount">0</h2>
+        </div>
+      </div>
+
+      <div class="wn-kpi-card yellow">
+        <div class="wn-kpi-details">
+          <small>สมาชิกสะสมแต้ม Cafe Club</small>
+          <h2 id="kpiMembersCount">0</h2>
+        </div>
+      </div>
+
+      <div class="wn-kpi-card purple">
+        <div class="wn-kpi-details">
+          <small>ระดับสิทธิ์การควบคุม</small>
+          <h2 style="font-size: 15px; color: var(--wn-tab-active);">Admin HQ (ทุกสาขา)</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="wn-tab-nav" role="tablist">
+      <button type="button" class="wn-tab-btn active" id="tabStaff" data-panel="panelStaff">
+        จัดการพนักงาน & สิทธิ์เข้าถึง <span class="badge" id="tabStaffCount">0</span>
+      </button>
+
+      <button type="button" class="wn-tab-btn" id="tabMembers" data-panel="panelMembers">
+        สมาชิก & โปรโมชั่น (Cafe Club) <span class="badge" id="tabMembersCount">0</span>
+      </button>
+
+      <button type="button" class="wn-tab-btn" id="tabBranches" data-panel="panelBranches">
+        จัดการสาขา & ข้อมูลร้าน <span class="badge" id="tabBranchesCount">0</span>
+      </button>
+    </div>
+
+    <!-- ====================================================================
+         Panel 1: จัดการพนักงาน (Staff Management - ยกเว้น Manager)
+         ==================================================================== -->
+    <section id="panelStaff" class="admin-panel">
+      <div class="wn-info-banner">
+        <div>
+          <strong>นโยบายสิทธิ์การเข้าถึง:</strong> ผู้ดูแลระบบ (Admin) บริหารจัดการและมอบหมายสาขาแก่พนักงานขาย (Cashier) ทั่วทั้งระบบ โดยระบบสงวนสิทธิ์ไม่แสดงและไม่อนุญาตให้แก้ไขบัญชีผู้จัดการร้าน (Manager) เพื่อความเป็นอิสระในการดูแลสินค้าและสต็อกของแต่ละสาขา
+        </div>
+      </div>
+
+      <div class="wn-card">
+        <div class="wn-card-header">
+          <div style="display: flex; gap: 12px; align-items: center; width: 100%; max-width: 600px;">
+            <input type="text" id="searchStaff" class="wn-input" placeholder="ค้นหาชื่อหรืออีเมลพนักงาน..." style="max-width: 260px;">
+            
+            <select id="filterStaffBranch" class="wn-select" style="max-width: 200px;">
+              <option value="all">ทุกสาขา</option>
+              <!-- Branch options loaded dynamically -->
+            </select>
+          </div>
+
+          <div style="font-size: 13px; color: var(--wn-gray);">
+            จำนวนพนักงาน <span id="staffTotalText" style="font-weight: 600; color: var(--wn-dark);">0</span> ท่าน
+          </div>
+        </div>
+
+        <table class="wn-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">รหัส</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>อีเมล (ชื่อผู้ใช้)</th>
+              <th>สาขาประจำการ</th>
+              <th class="text-center" style="width: 120px;">สิทธิ์การใช้งาน</th>
+              <th class="text-right" style="width: 150px;">การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="staffTableBody">
+            <!-- Rendered by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Panel 2: จัดการระบบสมาชิก & โปรโมชั่น (Cafe Club)
+         ==================================================================== -->
+    <section id="panelMembers" class="admin-panel" style="display: none;">
+      <div class="wn-info-banner" style="background: #f0fdf4; border-color: #bbf7d0; color: #166534;">
+        <span>🌟</span>
+        <div>
+          <strong>โปรโมชั่นสมาชิก Cafe Club:</strong> สมาชิกทุกท่านได้รับสิทธิ์ส่วนลด 5% ทุกออเดอร์อัตโนมัติเมื่อแจ้งเบอร์โทรศัพท์ 10 หลักหน้าร้าน พร้อมสะสมแต้ม 1 แต้มต่อทุก 10 บาทที่ใช้จ่าย และสามารถปรับระดับ VIP (10% หรือ 15%) ได้ตามเงื่อนไข
+        </div>
+      </div>
+
+      <div class="wn-card">
+        <div class="wn-card-header">
+          <div style="display: flex; gap: 12px; align-items: center; width: 100%; max-width: 500px;">
+            <input type="text" id="searchMember" class="wn-input" placeholder="ค้นหาชื่อ หรือ เบอร์โทร 10 หลัก..." style="max-width: 320px;">
+          </div>
+
+          <div style="font-size: 13px; color: var(--wn-gray);">
+            จำนวนสมาชิกทั้งหมด <span id="memberTotalText" style="font-weight: 600; color: var(--wn-dark);">0</span> ราย
+          </div>
+        </div>
+
+        <table class="wn-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">รหัสสมาชิก</th>
+              <th>ชื่อลูกค้า</th>
+              <th>เบอร์โทรศัพท์</th>
+              <th class="text-center" style="width: 130px;">แต้มสะสม</th>
+              <th class="text-center" style="width: 150px;">โปรโมชั่นส่วนลด</th>
+              <th>วันที่สมัครสมาชิก</th>
+              <th class="text-right" style="width: 150px;">การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="memberTableBody">
+            <!-- Rendered by admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Panel 3: จัดการสาขาและข้อมูลร้าน (Branches)
+         ==================================================================== -->
+    <section id="panelBranches" class="admin-panel" style="display: none;">
+      <div class="wn-info-banner" style="background: #fffbeb; border-color: #fde68a; color: #92400e;">
+        <span>🏪</span>
+        <div>
+          <strong>การควบคุมเครือข่ายสาขา:</strong> ผู้ดูแลระบบสามารถเพิ่มสาขาใหม่ ปรับเปลี่ยนที่ตั้ง และตรวจสอบจำนวนบุคลากรและรายการสินค้าประจำแต่ละสาขาได้แบบเรียลไทม์
+        </div>
+      </div>
+
+      <div class="wn-branch-card-grid" id="branchGrid">
+        <!-- Rendered by admin.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       Modal: เพิ่ม / แก้ไขพนักงาน (Staff Modal)
+       ==================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="staffModal">
+    <div class="wn-modal" style="max-width: 480px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title" id="staffModalTitle">เพิ่มพนักงานใหม่</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseStaffModal">&times;</button>
+      </div>
+
+      <form id="staffForm" novalidate>
+        <div class="wn-modal-body">
+          <input type="hidden" id="staffFormId">
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="staffFormName">ชื่อ - นามสกุล พนักงาน *</label>
+            <input type="text" id="staffFormName" class="wn-input" placeholder="เช่น กานดา สดใส" required>
+          </div>
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="staffFormEmail">อีเมล (สำหรับเข้าสู่ระบบ POS) *</label>
+            <input type="email" id="staffFormEmail" class="wn-input" placeholder="เช่น staff1@cafe.com" required>
+          </div>
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="staffFormPassword">
+              รหัสผ่าน <span id="staffPasswordHint" style="font-weight: normal; color: var(--wn-gray);">(กำหนดอย่างน้อย 4 ตัวอักษร)</span>
+            </label>
+            <input type="password" id="staffFormPassword" class="wn-input" placeholder="••••••••">
+          </div>
+
+          <div class="wn-form-group" id="staffBranchGroup">
+            <label class="wn-form-label" for="staffFormBranch">สาขาที่สังกัด *</label>
+            <select id="staffFormBranch" class="wn-select" required>
+              <!-- Branch options loaded dynamically -->
+            </select>
+          </div>
+
+          <div class="wn-form-group" id="staffRoleGroup">
+            <label class="wn-form-label" for="staffFormRole">ตำแหน่ง / สิทธิ์การเข้าถึงระบบ *</label>
+            <select id="staffFormRole" class="wn-select" required>
+              <option value="cashier">พนักงานขายหน้าร้าน (Cashier)</option>
+              <option value="barista">บาริสต้าเตรียมเครื่องดื่ม (Barista)</option>
+            </select>
+            <small style="color: var(--wn-gray); font-size: 11.5px; margin-top: 3px; display: block;">
+              * Cashier: รับออเดอร์และคิดเงินหน้าร้าน | Barista: รับคิวชงเครื่องดื่ม KDS
+            </small>
+          </div>
+
+          <div id="staffAdminNotice" style="display: none; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px; margin-top: 14px; font-size: 12.5px; color: #0369a1;">
+             <strong>บัญชีผู้ดูแลระบบ (Admin HQ):</strong> มีสิทธิ์เข้าถึงและดูแลจัดการข้อมูลทุกสาขา (ไม่จำกัดสาขา)
+          </div>
+        </div>
+
+        <div class="wn-modal-footer">
+          <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelStaffModal">ยกเลิก</button>
+          <button type="submit" class="wn-btn wn-btn-primary" id="btnSaveStaff">บันทึกข้อมูลพนักงาน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Modal: เพิ่ม / แก้ไขสมาชิก & ปรับโปรโมชั่น (Member Modal)
+       ==================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="memberModal">
+    <div class="wn-modal" style="max-width: 480px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title" id="memberModalTitle">เพิ่มสมาชิก Cafe Club</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseMemberModal">&times;</button>
+      </div>
+
+      <form id="memberForm" novalidate>
+        <div class="wn-modal-body">
+          <input type="hidden" id="memberFormId">
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="memberFormName">ชื่อลูกค้า *</label>
+            <input type="text" id="memberFormName" class="wn-input" placeholder="เช่น คุณสมชาย รักกาแฟ" required>
+          </div>
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="memberFormPhone">เบอร์โทรศัพท์มือถือ (10 หลัก) *</label>
+            <input type="tel" id="memberFormPhone" class="wn-input" maxlength="10" placeholder="เช่น 0812345678" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="wn-form-group">
+              <label class="wn-form-label" for="memberFormPoints">แต้มสะสม</label>
+              <input type="number" id="memberFormPoints" class="wn-input" min="0" step="1" value="0">
+            </div>
+
+            <div class="wn-form-group">
+              <label class="wn-form-label" for="memberFormDiscount">สิทธิ์ส่วนลดโปรโมชั่น</label>
+              <select id="memberFormDiscount" class="wn-select">
+                <option value="0.05">ลด 5% (มาตรฐาน Cafe Club)</option>
+                <option value="0.10">ลด 10% (VIP Gold)</option>
+                <option value="0.15">ลด 15% (VIP Platinum)</option>
+                <option value="0.00">ไม่มีส่วนลด (0%)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="wn-modal-footer">
+          <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelMemberModal">ยกเลิก</button>
+          <button type="submit" class="wn-btn wn-btn-primary" id="btnSaveMember">บันทึกข้อมูลสมาชิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Modal: เพิ่ม / แก้ไขข้อมูลสาขา (Branch Modal)
+       ==================================================================== -->
+  <div class="wn-modal-backdrop hidden" id="branchModal">
+    <div class="wn-modal" style="max-width: 480px;">
+      <div class="wn-modal-header">
+        <h3 class="wn-modal-title" id="branchModalTitle">เพิ่มสาขาใหม่</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseBranchModal">&times;</button>
+      </div>
+
+      <form id="branchForm" novalidate>
+        <div class="wn-modal-body">
+          <input type="hidden" id="branchFormId">
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="branchFormName">ชื่อสาขา *</label>
+            <input type="text" id="branchFormName" class="wn-input" placeholder="เช่น Whatever Cafe สาขา สยามสแควร์" required>
+          </div>
+
+          <div class="wn-form-group">
+            <label class="wn-form-label" for="branchFormAddress">ที่ตั้ง / รายละเอียดสาขา *</label>
+            <textarea id="branchFormAddress" class="wn-input" rows="3" placeholder="ระบุอาคาร ถนน แขวง/ตำบล หรือจุดสังเกต..." style="resize: vertical;" required></textarea>
+          </div>
+        </div>
+
+        <div class="wn-modal-footer">
+          <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelBranchModal">ยกเลิก</button>
+          <button type="submit" class="wn-btn wn-btn-primary" id="btnSaveBranch">บันทึกข้อมูลสาขา</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

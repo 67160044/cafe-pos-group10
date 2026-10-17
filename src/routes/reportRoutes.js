@@ -2,7 +2,9 @@
 const express = require("express");
 const router = express.Router();
 const reportController = require("../controllers/reportController");
+const { requireRole } = require("../middleware/authMiddleware");
 
-router.get("/sales", reportController.getSalesReport);
+// ดูรายงานยอดขาย (สงวนสิทธิ์เฉพาะผู้จัดการร้าน Manager เท่านั้น Admin และ Cashier ไม่มีสิทธิ์เข้าถึง)
+router.get("/sales", requireRole(["manager"]), reportController.getSalesReport);
 
 module.exports = router;

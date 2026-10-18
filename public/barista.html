@@ -3,102 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>บาร์เครื่องดื่ม (Barista KDS) - Whatever Cafe POS</title>
+  <title>บาร์ - Whatever Cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400..700&family=IBM+Plex+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="/css/whatever-cafe.css">
 </head>
 <body>
 
-  <!-- Whatever Cafe Top POS Navbar -->
   <header id="wnHeader"></header>
 
   <main class="wn-container">
-    
-    <!-- Page Header -->
+
     <div class="wn-page-header">
       <div class="wn-page-title-group">
-        <h1>หน้าจอคิวเตรียมเครื่องดื่ม (Barista KDS)</h1>
-        <p>รับออเดอร์จากแคชเชียร์แบบเรียลไทม์ ปรุงเครื่องดื่มตามสูตรและตัวเลือก และอัปเดตสถานะพร้อมเสิร์ฟ</p>
+        <h1>ใบสั่งที่บาร์</h1>
+        <p>กดปุ่มใต้ใบสั่งเมื่อเริ่มชงและเมื่อชงเสร็จ ใบที่รอเกิน 5 นาทีเวลาจะเป็นสีแดง</p>
       </div>
 
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <span id="liveSyncBadge" style="font-size: 11.5px; background: #dcfce7; color: #166534; padding: 5px 10px; border-radius: var(--wn-radius); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #bbf7d0;">
-          <span style="width: 8px; height: 8px; background: #16a34a; border-radius: 50%; display: inline-block;"></span>
-          Auto Sync
-        </span>
-
-        <button type="button" id="btnSoundToggle" class="wn-btn wn-btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-          เสียงเตือน: <strong id="soundStateText" style="color: #16a34a;">เปิด</strong>
+      <div class="wn-page-actions">
+        <span id="liveSyncBadge" class="wn-live">อัปเดตอัตโนมัติ</span>
+        <button type="button" id="btnSoundToggle" class="wn-btn wn-btn-secondary wn-btn-sm">
+          เสียงเตือน <strong id="soundStateText">เปิด</strong>
         </button>
-
-        <button type="button" id="btnManualRefresh" class="wn-btn wn-btn-secondary" style="padding: 6px 12px; font-size: 12px;">
-          รีเฟรช
-        </button>
+        <button type="button" id="btnManualRefresh" class="wn-btn wn-btn-secondary wn-btn-sm">รีเฟรช</button>
       </div>
     </div>
 
-    <!-- KPI Metric Cards Overview -->
     <div class="wn-kpi-grid">
-      <div class="wn-kpi-card yellow">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>ออเดอร์รอคิวชง (Pending)</small>
+          <small>รอชง</small>
           <h2 id="kpiPendingCount">0</h2>
         </div>
       </div>
-
-      <div class="wn-kpi-card blue">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>กำลังปรุง / กำลังชง (Preparing)</small>
+          <small>กำลังชง</small>
           <h2 id="kpiPreparingCount">0</h2>
         </div>
       </div>
-
-      <div class="wn-kpi-card green">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>พร้อมเสิร์ฟ (Ready for Pickup)</small>
+          <small>รอลูกค้ารับ</small>
           <h2 id="kpiReadyCount">0</h2>
         </div>
       </div>
-
-      <div class="wn-kpi-card gray">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>เสิร์ฟเสร็จสิ้น (Completed)</small>
+          <small>ส่งแล้ว</small>
           <h2 id="kpiCompletedCount">0</h2>
         </div>
       </div>
     </div>
 
-    <!-- Filter Pills Toolbar -->
     <div class="wn-kds-toolbar">
-      <div class="wn-kds-filter-pills" id="kdsFilterPills">
+      <div class="wn-kds-filter-pills" id="kdsFilterPills" role="group" aria-label="กรองใบสั่ง">
         <button type="button" class="wn-kds-pill active" data-filter="active">
-          คิวที่ต้องทำ (รอชง + กำลังปรุง) <span class="badge" id="badgeActiveCount">0</span>
+          ต้องทำ <span class="badge" id="badgeActiveCount">0</span>
         </button>
         <button type="button" class="wn-kds-pill" data-filter="pending">
-          รอคิวชง <span class="badge" id="badgePending">0</span>
+          รอชง <span class="badge" id="badgePending">0</span>
         </button>
         <button type="button" class="wn-kds-pill" data-filter="preparing">
-          กำลังปรุง <span class="badge" id="badgePreparing">0</span>
+          กำลังชง <span class="badge" id="badgePreparing">0</span>
         </button>
         <button type="button" class="wn-kds-pill" data-filter="ready">
           พร้อมเสิร์ฟ <span class="badge" id="badgeReady">0</span>
         </button>
         <button type="button" class="wn-kds-pill" data-filter="completed">
-          เสร็จสิ้นแล้ว <span class="badge" id="badgeCompleted">0</span>
+          ส่งแล้ว <span class="badge" id="badgeCompleted">0</span>
         </button>
         <button type="button" class="wn-kds-pill" data-filter="all">
           ทั้งหมด <span class="badge" id="badgeAll">0</span>
         </button>
       </div>
 
-      <div style="font-size: 13px; color: var(--wn-gray);">
-        แสดงรายการ <span id="kdsFilteredText" style="font-weight: 700; color: var(--wn-dark);">0</span> ใบสั่งทำ
+      <div class="wn-count">
+        <strong id="kdsFilteredText">0</strong> ใบ
       </div>
     </div>
 
-    <!-- KDS Order Cards Grid -->
-    <div class="wn-kds-grid" id="kdsOrderGrid">
-      <!-- Rendered by barista.js -->
-    </div>
+    <div class="wn-kds-grid" id="kdsOrderGrid"></div>
 
   </main>
 

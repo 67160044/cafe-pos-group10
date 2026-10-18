@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) {
         showError(data.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
         submitBtn.disabled = false;
-        submitBtn.textContent = "เข้าสู่ระบบ (Sign In)";
+        submitBtn.textContent = "เข้าสู่ระบบ";
         return;
       }
 
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       showError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
       submitBtn.disabled = false;
-      submitBtn.textContent = "เข้าสู่ระบบ (Sign In)";
+      submitBtn.textContent = "เข้าสู่ระบบ";
     }
   }
 

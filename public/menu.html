@@ -3,110 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จัดการเมนู & สต็อกสินค้า - Whatever Cafe POS</title>
+  <title>เมนูและสต็อก - Whatever Cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400..700&family=IBM+Plex+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="/css/whatever-cafe.css">
 </head>
 <body>
 
-  <!-- Whatever Cafe Top Navbar -->
   <header id="wnHeader"></header>
 
   <main class="wn-container">
-    
+
     <div class="wn-page-header">
       <div class="wn-page-title-group">
-        <h1>จัดการเมนู & สต็อกสินค้า</h1>
-        <p>เพิ่ม แก้ไข และตรวจสอบปริมาณสินค้าคงเหลือของสาขา</p>
+        <h1>เมนูและสต็อก</h1>
+        <p>ราคาและจำนวนแก้วที่เหลือของสาขาที่เลือกด้านบน เมนูที่เหลือต่ำกว่า 10 แก้วจะถูกนับเป็นใกล้หมด</p>
       </div>
 
-      <button type="button" id="btnOpenAddMenu" class="wn-btn wn-btn-primary">
-        <span>+</span> เพิ่มเมนูใหม่
-      </button>
+      <button type="button" id="btnOpenAddMenu" class="wn-btn wn-btn-primary">เพิ่มเมนู</button>
     </div>
 
-    <!-- KPI Metric Cards -->
     <div class="wn-kpi-grid">
-      <div class="wn-kpi-card blue">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>เมนูทั้งหมดในสาขานี้</small>
+          <small>เมนูทั้งหมด</small>
           <h2 id="kpiTotalMenus">0</h2>
         </div>
       </div>
-
-      <div class="wn-kpi-card green">
+      <div class="wn-kpi-card">
         <div class="wn-kpi-details">
-          <small>สินค้าพร้อมจำหน่าย</small>
+          <small>ขายได้</small>
           <h2 id="kpiInStock">0</h2>
         </div>
       </div>
-
       <div class="wn-kpi-card yellow">
         <div class="wn-kpi-details">
-          <small>สต็อกใกล้หมด (< 10)</small>
+          <small>ใกล้หมด</small>
           <h2 id="kpiLowStock">0</h2>
         </div>
       </div>
-
-      <div class="wn-kpi-card gray">
+      <div class="wn-kpi-card alert">
         <div class="wn-kpi-details">
-          <small>สินค้าหมดสต็อก</small>
+          <small>หมดแล้ว</small>
           <h2 id="kpiOutOfStock">0</h2>
         </div>
       </div>
     </div>
 
-    <!-- Table Card -->
     <div class="wn-card">
       <div class="wn-card-header">
-        <div style="display: flex; gap: 12px; align-items: center; width: 100%; max-width: 600px;">
-          <input type="text" id="menuSearch" class="wn-input" placeholder="ค้นหาชื่อเมนู..." style="max-width: 260px;">
-          
-          <select id="catFilter" class="wn-select" style="max-width: 180px;">
-            <option value="all">ทุกหมวดหมู่</option>
+        <div class="wn-filters">
+          <input type="search" id="menuSearch" class="wn-input" placeholder="ค้นหาชื่อเมนู" aria-label="ค้นหาชื่อเมนู">
+
+          <select id="catFilter" class="wn-select" aria-label="หมวดหมู่">
+            <option value="all">ทุกหมวด</option>
             <option value="1">ชา</option>
             <option value="2">กาแฟ</option>
             <option value="3">นม/โกโก้</option>
             <option value="4">อื่น ๆ</option>
           </select>
 
-          <select id="stockFilter" class="wn-select" style="max-width: 160px;">
-            <option value="all">สถานะสต็อกทั้งหมด</option>
-            <option value="low">ใกล้หมด (< 10)</option>
-            <option value="out">หมดสต็อก (0)</option>
+          <select id="stockFilter" class="wn-select" aria-label="สต็อก">
+            <option value="all">สต็อกทั้งหมด</option>
+            <option value="low">ใกล้หมด</option>
+            <option value="out">หมดแล้ว</option>
           </select>
         </div>
 
-        <div style="font-size: 13px; color: var(--wn-gray);">
-          แสดงผล <span id="itemCountText" style="font-weight: 600; color: var(--wn-dark);">0</span> รายการ
-        </div>
+        <div class="wn-count"><strong id="itemCountText">0</strong> รายการ</div>
       </div>
 
-      <table class="wn-table">
-        <thead>
-          <tr>
-            <th style="width: 80px;">รหัส</th>
-            <th>ชื่อเมนู</th>
-            <th>หมวดหมู่</th>
-            <th class="text-right">ราคาจำหน่าย</th>
-            <th class="text-center">สต็อกคงเหลือ</th>
-            <th>สถานะ</th>
-            <th class="text-right" style="width: 160px;">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody id="menuTableBody">
-          <!-- Rendered by menu.js -->
-        </tbody>
-      </table>
+      <div class="wn-table-scroll">
+        <table class="wn-table">
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>เมนู</th>
+              <th>หมวด</th>
+              <th class="text-right">ราคา</th>
+              <th class="text-right">เหลือ (แก้ว)</th>
+              <th>สถานะ</th>
+              <th class="text-right"><span class="wn-muted">จัดการ</span></th>
+            </tr>
+          </thead>
+          <tbody id="menuTableBody"></tbody>
+        </table>
+      </div>
     </div>
 
   </main>
 
-  <!-- Modal: เพิ่ม / แก้ไขเมนู -->
   <div class="wn-modal-backdrop hidden" id="menuFormModal">
-    <div class="wn-modal">
+    <div class="wn-modal sm" role="dialog" aria-modal="true" aria-labelledby="menuModalTitle">
       <div class="wn-modal-header">
-        <h3 class="wn-modal-title" id="menuModalTitle">เพิ่มเมนูใหม่</h3>
-        <button type="button" class="wn-modal-close" id="btnCloseMenuModal">&times;</button>
+        <h3 class="wn-modal-title" id="menuModalTitle">เพิ่มเมนู</h3>
+        <button type="button" class="wn-modal-close" id="btnCloseMenuModal" aria-label="ปิด">&times;</button>
       </div>
 
       <form id="menuForm" novalidate>
@@ -114,12 +106,12 @@
           <input type="hidden" id="formMenuId">
 
           <div class="wn-form-group">
-            <label class="wn-form-label" for="formName">ชื่อเมนูเครื่องดื่ม *</label>
+            <label class="wn-form-label" for="formName">ชื่อเมนู</label>
             <input type="text" id="formName" class="wn-input" placeholder="เช่น มัทฉะลาเต้เย็น" required>
           </div>
 
           <div class="wn-form-group">
-            <label class="wn-form-label" for="formCategory">หมวดหมู่ *</label>
+            <label class="wn-form-label" for="formCategory">หมวด</label>
             <select id="formCategory" class="wn-select" required>
               <option value="1">ชา</option>
               <option value="2">กาแฟ</option>
@@ -128,14 +120,13 @@
             </select>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="wn-form-row">
             <div class="wn-form-group">
-              <label class="wn-form-label" for="formPrice">ราคา (บาท) *</label>
-              <input type="number" id="formPrice" class="wn-input" min="1" step="0.5" placeholder="55.00" required>
+              <label class="wn-form-label" for="formPrice">ราคา (บาท)</label>
+              <input type="number" id="formPrice" class="wn-input" min="1" step="0.5" placeholder="55" required>
             </div>
-
             <div class="wn-form-group">
-              <label class="wn-form-label" for="formStock">จำนวนสต็อก (แก้ว) *</label>
+              <label class="wn-form-label" for="formStock">สต็อก (แก้ว)</label>
               <input type="number" id="formStock" class="wn-input" min="0" step="1" placeholder="20" required>
             </div>
           </div>
@@ -143,7 +134,7 @@
 
         <div class="wn-modal-footer">
           <button type="button" class="wn-btn wn-btn-secondary" id="btnCancelMenuModal">ยกเลิก</button>
-          <button type="submit" class="wn-btn wn-btn-primary" id="btnSaveMenu">บันทึกข้อมูล</button>
+          <button type="submit" class="wn-btn wn-btn-primary" id="btnSaveMenu">บันทึกเมนู</button>
         </div>
       </form>
     </div>

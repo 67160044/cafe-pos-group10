@@ -32,15 +32,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const formStock = document.getElementById("formStock");
   const btnSaveMenu = document.getElementById("btnSaveMenu");
 
-  function getDrinkEmoji(name) {
-    const n = String(name).toLowerCase();
-    if (n.includes("ชาไทย") || n.includes("ชานม") || n.includes("ไข่มุก")) return "🧋";
-    if (n.includes("ชาเขียว") || n.includes("มัทฉะ") || n.includes("ชา")) return "🍵";
-    if (n.includes("ลาเต้") || n.includes("คาปู") || n.includes("อเมริกาโน่") || n.includes("เอสเปรสโซ่") || n.includes("กาแฟ")) return "☕";
-    if (n.includes("โกโก้") || n.includes("นม") || n.includes("ช็อกโกแลต")) return "🥛";
-    return "🥤";
-  }
-
   const CAT_MAP = {
     1: "ชา",
     2: "กาแฟ",
@@ -52,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const branchId = Auth.getBranchId();
     menuTableBody.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center" style="padding: 40px; color: var(--wn-gray);">
+        <td colspan="7" class="wn-empty-row">
           กำลังโหลดข้อมูลเมนู...
         </td>
       </tr>
@@ -62,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) {
       menuTableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center" style="padding: 40px; color: var(--wn-danger);">
+          <td colspan="7" class="wn-empty-row error">
             ไม่สามารถโหลดข้อมูลได้: ${res.error || "เกิดข้อผิดพลาด"}
           </td>
         </tr>
@@ -112,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (filtered.length === 0) {
       menuTableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center" style="padding: 40px; color: var(--wn-gray);">
+          <td colspan="7" class="wn-empty-row">
             ไม่พบรายการเมนูที่ตรงกับเงื่อนไข
           </td>
         </tr>
@@ -134,24 +125,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         return `
           <tr>
-            <td style="font-weight: 600; color: var(--wn-gray);">#${item.menuId}</td>
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">${getDrinkEmoji(item.name)}</span>
-                <span style="font-weight: 600;">${item.name}</span>
-              </div>
-            </td>
-            <td><span style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 12px;">${catName}</span></td>
-            <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${Number(item.price).toFixed(2)}</td>
-            <td class="text-center" style="font-weight: 600;">${stock} แก้ว</td>
+            <td class="wn-id">${item.menuId}</td>
+            <td class="wn-strong">${item.name}</td>
+            <td><span class="wn-cat-tag cat-${item.categoryId}">${catName}</span></td>
+            <td class="wn-money">฿${Number(item.price).toFixed(2)}</td>
+            <td class="text-right">${stock}</td>
             <td>${statusBadge}</td>
             <td class="text-right">
-              <button type="button" class="wn-btn wn-btn-secondary btn-edit-menu" data-id="${item.menuId}" style="padding: 4px 10px; font-size: 12px;">
-                ✏️ แก้ไข
-              </button>
-              <button type="button" class="wn-btn wn-btn-outline-danger btn-del-menu" data-id="${item.menuId}" style="padding: 4px 8px; font-size: 12px;">
-                🗑️
-              </button>
+              <div class="wn-row-actions">
+                <button type="button" class="wn-btn wn-btn-secondary wn-btn-sm btn-edit-menu" data-id="${item.menuId}">แก้ไข</button>
+                <button type="button" class="wn-btn wn-btn-outline-danger wn-btn-sm btn-del-menu" data-id="${item.menuId}">ลบ</button>
+              </div>
             </td>
           </tr>
         `;
@@ -260,7 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     btnSaveMenu.disabled = false;
-    btnSaveMenu.textContent = "บันทึกข้อมูล";
+    btnSaveMenu.textContent = "บันทึกเมนู";
 
     if (!res.ok) {
       Auth.showToast(res.error || "เกิดข้อผิดพลาดในการบันทึก", "error");

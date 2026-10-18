@@ -83,29 +83,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const receiptModal = document.getElementById("receiptModal");
 
-  function getDrinkEmoji(name) {
-    const n = String(name).toLowerCase();
-    if (n.includes("ชาไทย") || n.includes("ชานม") || n.includes("ไข่มุก")) return "🧋";
-    if (n.includes("ชาเขียว") || n.includes("มัทฉะ") || n.includes("ชา")) return "🍵";
-    if (n.includes("ลาเต้") || n.includes("คาปู") || n.includes("อเมริกาโน่") || n.includes("เอสเปรสโซ่") || n.includes("กาแฟ")) return "☕";
-    if (n.includes("โกโก้") || n.includes("นม") || n.includes("ช็อกโกแลต")) return "🥛";
-    return "🥤";
-  }
-
   // --- Load Menu Items ---
   async function loadMenu() {
     const branchId = Auth.getBranchId();
-    productGrid.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--wn-gray);">
-        กำลังโหลดรายการเมนู...
-      </div>
-    `;
+    productGrid.innerHTML = `<div class="wn-grid-message">กำลังโหลดเมนู...</div>`;
 
     const res = await Auth.api("GET", `/api/menu?branchId=${branchId}`);
     if (!res.ok) {
       productGrid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--wn-danger);">
-          ไม่สามารถโหลดข้อมูลเมนูได้: ${res.error || "เกิดข้อผิดพลาด"}
+        <div class="wn-grid-message error">
+          โหลดเมนูไม่ได้: ${res.error || "เกิดข้อผิดพลาด"} ลองรีเฟรชหน้านี้
         </div>
       `;
       return;
@@ -132,9 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (filtered.length === 0) {
       productGrid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--wn-gray);">
-          ไม่พบรายการเมนูที่ค้นหา
-        </div>
+        <div class="wn-grid-message">ไม่มีเมนูที่ตรงกับคำค้น ลองพิมพ์ชื่อสั้นลง หรือเลือกหมวด "ทั้งหมด"</div>
       `;
       return;
     }
@@ -143,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map((item) => {
         const stock = Number(item.stockQuantity || 0);
         const isOutOfStock = stock <= 0;
-        let stockBadge = `<span class="wn-stock-badge in-stock">สต็อก ${stock}</span>`;
+        let stockBadge = `<span class="wn-stock-badge in-stock">${stock} แก้ว</span>`;
         if (isOutOfStock) {
           stockBadge = `<span class="wn-stock-badge out-of-stock">หมด</span>`;
         } else if (stock < 10) {
@@ -156,11 +141,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const qtyBadge = inCartQty > 0 ? `<span class="wn-card-qty-badge">${inCartQty}</span>` : "";
 
         return `
-          <div class="wn-product-card ${isOutOfStock ? "out-of-stock" : ""}" data-id="${item.menuId}">
+          <div class="wn-product-card cat-${item.categoryId} ${isOutOfStock ? "out-of-stock" : ""}" data-id="${item.menuId}" role="button" tabindex="${isOutOfStock ? -1 : 0}" aria-disabled="${isOutOfStock}">
             ${qtyBadge}
-            <div class="wn-product-thumb">
-              <span class="wn-product-icon">${getDrinkEmoji(item.name)}</span>
-            </div>
+            <span class="wn-product-art" aria-hidden="true"></span>
             <div class="wn-product-body">
               <div class="wn-product-name" title="${item.name}">${item.name}</div>
               <div class="wn-product-bottom-row">
@@ -180,6 +163,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const item = menuList.find((m) => m.menuId === id);
         if (!item || Number(item.stockQuantity) <= 0) return;
         openCustomizer(item);
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          card.click();
+        }
       });
     });
   }
@@ -373,6 +362,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       btnPayMain.disabled = !hasItems;
     }
 
+    const cartCountText = document.getElementById("cartCountText");
+    if (cartCountText) {
+      cartCountText.textContent = cart.reduce((sum, c) => sum + c.quantity, 0);
+    }
+
     const btnPayTotalText = document.getElementById("btnPayTotalText");
     if (btnPayTotalText) {
       btnPayTotalText.textContent = hasItems ? `${netTotal.toFixed(2)} ฿` : "0.00 ฿";
@@ -381,11 +375,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (btnOpenRegisterMember) {
       if (currentMember) {
         btnOpenRegisterMember.className = "wn-btn-member-action active";
-        btnOpenRegisterMember.innerHTML = `✓ สมาชิก: <strong>${currentMember.name}</strong> (ลด 5%)`;
+        btnOpenRegisterMember.innerHTML = `สมาชิก: <strong>${Auth.escapeHtml(currentMember.name)}</strong> ลด ${Math.round(memberDiscountRate * 100)}%`;
         btnOpenRegisterMember.title = "คลิกเพื่อดูหรือยกเลิกสิทธิ์สมาชิก";
       } else {
         btnOpenRegisterMember.className = "wn-btn-member-action";
-        btnOpenRegisterMember.innerHTML = `⭐ สมัครสมาชิก Cafe Club (รับส่วนลด 5%)`;
+        btnOpenRegisterMember.textContent = "สมัครสมาชิกใหม่";
         btnOpenRegisterMember.title = "คลิกเพื่อสมัครสมาชิกใหม่ หรือระบุเบอร์สมาชิกลด 5%";
       }
     }
@@ -393,9 +387,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!hasItems) {
       cartItems.innerHTML = `
         <div class="wn-cart-empty">
-          <span style="font-size: 36px;">🛒</span>
-          <span>ยังไม่มีรายการสินค้าในบิล</span>
-          <small style="color: var(--wn-gray-light);">แตะเลือกเมนูเครื่องดื่มจากฝั่งซ้ายเพื่อสั่งซื้อ</small>
+          <span>บิลยังว่าง</span>
+          <small>แตะเมนูทางซ้ายเพื่อเพิ่มรายการ</small>
         </div>
       `;
       return;
@@ -414,11 +407,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
           <div class="wn-cart-item-bottom">
             <div class="wn-qty-stepper">
-              <button type="button" class="wn-qty-btn btn-cart-minus" data-idx="${index}">-</button>
+              <button type="button" class="wn-qty-btn btn-cart-minus" data-idx="${index}" aria-label="ลดจำนวน">&minus;</button>
               <input type="text" class="wn-qty-val" value="${item.quantity}" readonly>
               <button type="button" class="wn-qty-btn btn-cart-plus" data-idx="${index}">+</button>
             </div>
-            <button type="button" class="wn-btn-del-item btn-cart-del" data-idx="${index}" title="ลบรายการ">&times;</button>
+            <button type="button" class="wn-btn-del-item btn-cart-del" data-idx="${index}">เอาออก</button>
           </div>
         </div>
       `
@@ -502,7 +495,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!/^\d{10}$/.test(phone)) {
       memberStatus.style.display = "block";
       memberStatus.className = "wn-member-status error";
-      memberStatus.innerHTML = "❌ กรุณากรอกหมายเลขโทรศัพท์ 10 หลักให้ถูกต้อง";
+      memberStatus.innerHTML = "เบอร์โทรต้องเป็นตัวเลข 10 หลัก";
       currentMember = null;
       memberDiscountRate = 0;
       btnClearMember.style.display = "none";
@@ -512,7 +505,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     btnSearchMember.disabled = true;
-    btnSearchMember.innerHTML = "⏳ ตรวจสอบ...";
+    btnSearchMember.textContent = "กำลังตรวจ...";
 
     try {
       const res = await Auth.api("GET", `/api/members/check/${encodeURIComponent(phone)}`);
@@ -522,12 +515,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         memberStatus.style.display = "block";
         memberStatus.className = "wn-member-status success";
         memberStatus.innerHTML = `
-          <div style="font-weight: 600; color: #15803d;">✓ ยืนยันสมาชิก Cafe Club เรียบร้อย</div>
-          <div style="margin-top: 2px;">👤 ${currentMember.name}</div>
-          <div style="font-size: 11.5px; color: #475569; margin-top: 3px;">
-            <span>⭐ แต้มสะสม: <strong>${currentMember.points}</strong> แต้ม</span> | 
-            <span style="color: #15803d; font-weight: 600;">🏷️ ส่วนลด ${(memberDiscountRate * 100).toFixed(0)}%</span>
-          </div>
+          <strong>${Auth.escapeHtml(currentMember.name)}</strong>
+          <div class="wn-muted">แต้มสะสม ${currentMember.points} แต้ม ส่วนลด ${(memberDiscountRate * 100).toFixed(0)}%</div>
         `;
         btnClearMember.style.display = "inline-flex";
         if (memberBadge) memberBadge.style.display = "inline-block";
@@ -539,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         memberDiscountRate = 0;
         memberStatus.style.display = "block";
         memberStatus.className = "wn-member-status error";
-        memberStatus.innerHTML = `❌ ${res.error || "ไม่พบข้อมูลสมาชิกในระบบ Cafe Club"}`;
+        memberStatus.innerHTML = `${res.error || "ไม่พบเบอร์นี้ในระบบสมาชิก ตรวจเบอร์อีกครั้ง หรือกดสมัครสมาชิกใหม่"}`;
         btnClearMember.style.display = "none";
         if (memberBadge) memberBadge.style.display = "none";
         memberPhone.readOnly = false;
@@ -549,13 +538,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (err) {
       memberStatus.style.display = "block";
       memberStatus.className = "wn-member-status error";
-      memberStatus.textContent = "❌ ไม่สามารถเชื่อมต่อระบบตรวจสอบสมาชิกได้";
+      memberStatus.textContent = "ตรวจสอบสมาชิกไม่ได้ เพราะเชื่อมต่อเซิร์ฟเวอร์ไม่ได้";
       currentMember = null;
       memberDiscountRate = 0;
       renderCart();
     } finally {
       btnSearchMember.disabled = false;
-      btnSearchMember.innerHTML = "🔍 ตรวจสอบ";
+      btnSearchMember.textContent = "ตรวจสอบ";
     }
   }
 
@@ -584,8 +573,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ok = await Auth.confirmModal({
         title: "ยืนยันยกเลิกสิทธิ์สมาชิก",
         message: `คุณต้องการยกเลิกการใช้สิทธิ์ของ "${currentMember.name}" ในบิลนี้หรือไม่?`,
-        icon: "🏷️",
-        confirmText: "ยกเลิกสิทธิ์",
+                confirmText: "ยกเลิกสิทธิ์",
         cancelText: "ปิด",
         type: "warning",
       });
@@ -607,12 +595,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     memberStatus.style.display = "block";
     memberStatus.className = "wn-member-status success";
     memberStatus.innerHTML = `
-      <div style="font-weight: 600; color: #15803d;">✓ ยืนยันสมาชิก Cafe Club เรียบร้อย</div>
-      <div style="margin-top: 2px;">👤 ${currentMember.name}</div>
-      <div style="font-size: 11.5px; color: #475569; margin-top: 3px;">
-        <span>⭐ แต้มสะสม: <strong>${currentMember.points || 0}</strong> แต้ม</span> | 
-        <span style="color: #15803d; font-weight: 600;">🏷️ ส่วนลด ${(memberDiscountRate * 100).toFixed(0)}%</span>
-      </div>
+      <strong>${Auth.escapeHtml(currentMember.name)}</strong>
+      <div class="wn-muted">แต้มสะสม ${currentMember.points || 0} แต้ม ส่วนลด ${(memberDiscountRate * 100).toFixed(0)}%</div>
     `;
     btnClearMember.style.display = "inline-flex";
 
@@ -665,14 +649,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!phone || !/^\d{10}$/.test(phone)) {
       regMemberMsg.style.display = "block";
       regMemberMsg.className = "wn-member-status error";
-      regMemberMsg.textContent = "❌ กรุณากรอกหมายเลขโทรศัพท์ 10 หลัก";
+      regMemberMsg.textContent = "เบอร์โทรต้องเป็นตัวเลข 10 หลัก";
       return;
     }
 
     if (!name) {
       regMemberMsg.style.display = "block";
       regMemberMsg.className = "wn-member-status error";
-      regMemberMsg.textContent = "❌ กรุณากรอกชื่อ-นามสกุลของสมาชิก";
+      regMemberMsg.textContent = "กรอกชื่อลูกค้าก่อนสมัคร";
       return;
     }
 
@@ -692,7 +676,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         regMemberMsg.className = "wn-member-status error";
-        regMemberMsg.textContent = `❌ ${res.error || (res.data && res.data.error) || "สมัครสมาชิกไม่สำเร็จ"}`;
+        regMemberMsg.textContent = `${res.error || (res.data && res.data.error) || "สมัครสมาชิกไม่สำเร็จ"}`;
         return;
       }
 
@@ -815,7 +799,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (change >= 0) {
       cashChangeText.textContent = `฿${change.toFixed(2)}`;
-      cashChangeText.style.color = "#16a34a";
+      cashChangeText.style.color = "";
       btnConfirmCash.disabled = false;
     } else {
       cashChangeText.textContent = "ยังไม่พอยอดชำระ";
@@ -847,10 +831,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnConfirmCash.textContent = "กำลังบันทึก...";
 
     const res = await submitOrder("cash");
-    btnConfirmCash.textContent = "บันทึกการชำระเงิน & ออกใบเสร็จ";
+    btnConfirmCash.textContent = "บันทึกและออกใบเสร็จ";
     if (res) {
       cashModal.classList.add("hidden");
-      openReceiptModal(res.orderId, "เงินสด (Cash)");
+      openReceiptModal(res.orderId, "เงินสด");
     }
   });
 
@@ -879,7 +863,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "สาขาสยาม";
     const { subtotal, discount, vat, netTotal } = calculateBill();
 
-    document.getElementById("recBranchName").textContent = branchName.replace("📍 ", "");
+    document.getElementById("recBranchName").textContent = branchName;
     document.getElementById("recOrderId").textContent = `#${String(orderId).padStart(5, "0")}`;
     document.getElementById("recDateTime").textContent = new Date().toLocaleString("th-TH");
     document.getElementById("recCashierName").textContent = user.name;
@@ -891,7 +875,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="wn-receipt-item-row">
           <div>
             <div>${item.name} x${item.quantity}</div>
-            <small style="color: var(--wn-gray);">${item.desc}</small>
+            <small>${item.desc}</small>
           </div>
           <div>฿${item.lineTotal.toFixed(2)}</div>
         </div>
@@ -909,7 +893,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const recMemberName = document.getElementById("recMemberName");
     if (recMemberRow && recMemberName) {
       if (currentMember) {
-        recMemberRow.style.display = "block";
+        recMemberRow.style.display = "";
         recMemberName.textContent = `${currentMember.name} (${currentMember.phone})`;
       } else {
         recMemberRow.style.display = "none";

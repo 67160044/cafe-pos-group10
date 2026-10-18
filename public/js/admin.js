@@ -164,13 +164,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ปรับปุ่ม Action หลักตามแท็บ
     if (targetPanelId === "panelStaff") {
-      btnMainAdd.innerHTML = "<span>+</span> เพิ่มพนักงานใหม่";
+      btnMainAdd.textContent = "เพิ่มพนักงาน";
       btnMainAdd.style.display = "inline-flex";
     } else if (targetPanelId === "panelMembers") {
-      btnMainAdd.innerHTML = "<span>+</span> เพิ่มสมาชิก Cafe Club";
+      btnMainAdd.textContent = "เพิ่มสมาชิก";
       btnMainAdd.style.display = "inline-flex";
     } else if (targetPanelId === "panelBranches") {
-      btnMainAdd.innerHTML = "<span>+</span> เพิ่มสาขาใหม่";
+      btnMainAdd.textContent = "เพิ่มสาขา";
       btnMainAdd.style.display = "inline-flex";
     }
   }
@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (filtered.length === 0) {
       staffTableBody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center" style="padding: 30px; color: var(--wn-gray);">
+          <td colspan="6" class="wn-empty-row">
             ไม่พบข้อมูลพนักงานที่ตรงกับเงื่อนไข
           </td>
         </tr>
@@ -250,42 +250,42 @@ document.addEventListener("DOMContentLoaded", async () => {
         const isSelf = currentUser && currentUser.userId === s.user_id;
         let branchBadge = "";
         if (s.role === "admin") {
-          branchBadge = '<span style="background: #e0f2fe; color: #0369a1; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 11.5px;">ทุกสาขา (HQ)</span>';
+          branchBadge = '<span>ทุกสาขา</span>';
         } else {
           branchBadge = s.branch_name
-            ? `<span style="font-weight: 500;">${escapeHtml(s.branch_name)}</span>`
+            ? `<span>${escapeHtml(s.branch_name)}</span>`
             : '<span style="color: var(--wn-gray);">-</span>';
         }
 
         let roleBadge = "";
         if (s.role === "admin") {
-          roleBadge = '<span class="wn-role-badge admin">Admin HQ</span>';
+          roleBadge = '<span class="wn-role-badge admin">ผู้ดูแลระบบ</span>';
         } else if (s.role === "cashier") {
-          roleBadge = '<span class="wn-role-badge cashier">Cashier</span>';
+          roleBadge = '<span class="wn-role-badge cashier">แคชเชียร์</span>';
         } else if (s.role === "barista") {
-          roleBadge = '<span class="wn-role-badge barista">Barista</span>';
+          roleBadge = '<span class="wn-role-badge barista">บาริสต้า</span>';
         } else {
           roleBadge = `<span class="wn-role-badge">${escapeHtml(s.role)}</span>`;
         }
 
         const deleteBtn = isSelf
-          ? `<button type="button" class="wn-btn wn-btn-secondary" style="padding: 4px 8px; font-size: 11.5px; opacity: 0.5; cursor: not-allowed;" title="ไม่สามารถลบบัญชีของตัวเองได้" disabled>ลบ</button>`
-          : `<button type="button" class="wn-btn wn-btn-outline-danger btn-delete-staff" data-id="${s.user_id}" data-name="${escapeHtml(s.name)}" style="padding: 4px 8px; font-size: 11.5px;">ลบ</button>`;
+          ? `<button type="button" class="wn-btn wn-btn-secondary" style="padding: 4px 10px; font-size: 13px;" title="ไม่สามารถลบบัญชีของตัวเองได้" disabled>ลบ</button>`
+          : `<button type="button" class="wn-btn wn-btn-outline-danger btn-delete-staff" data-id="${s.user_id}" data-name="${escapeHtml(s.name)}" style="padding: 4px 10px; font-size: 13px;">ลบ</button>`;
 
         return `
           <tr>
-            <td style="font-weight: 600; color: var(--wn-gray);">#${s.user_id}</td>
+            <td class="wn-id">${s.user_id}</td>
             <td>
-              <div style="font-weight: 600; color: var(--wn-dark);">${escapeHtml(s.name)}</div>
-              ${isSelf ? '<small style="color: var(--wn-orange); font-size: 11px;">(บัญชีที่คุณกำลังใช้งาน)</small>' : ""}
+              <div class="wn-strong">${escapeHtml(s.name)}</div>
+              ${isSelf ? '<small class="wn-self-note">บัญชีของคุณ</small>' : ""}
             </td>
-            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 2px; font-size: 12px;">${escapeHtml(s.email)}</code></td>
+            <td class="wn-email">${escapeHtml(s.email)}</td>
             <td>${branchBadge}</td>
             <td class="text-center">${roleBadge}</td>
             <td class="text-right">
               <div style="display: inline-flex; gap: 6px;">
-                <button type="button" class="wn-btn wn-btn-secondary btn-edit-staff" data-id="${s.user_id}" style="padding: 4px 10px; font-size: 11.5px;">
-                  ✏️ แก้ไข
+                <button type="button" class="wn-btn wn-btn-secondary btn-edit-staff" data-id="${s.user_id}" style="padding: 4px 10px; font-size: 13px;">
+                  แก้ไข
                 </button>
                 ${deleteBtn}
               </div>
@@ -322,19 +322,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       staffFormName.value = item.name || "";
       staffFormEmail.value = item.email || "";
       staffFormPassword.value = "";
-      staffPasswordHint.textContent = "(เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน)";
+      staffPasswordHint.textContent = "เว้นว่างไว้ถ้าไม่เปลี่ยน";
 
       if (item.role === "admin") {
-        staffModalTitle.textContent = `แก้ไขข้อมูลผู้ดูแลระบบ (#${item.user_id})`;
-        if (btnSaveStaff) btnSaveStaff.textContent = "บันทึกข้อมูลผู้ดูแลระบบ";
+        staffModalTitle.textContent = `แก้ไขผู้ดูแลระบบ ${item.name}`;
+        if (btnSaveStaff) btnSaveStaff.textContent = "บันทึก";
         if (staffBranchGroup) staffBranchGroup.style.display = "none";
         if (staffFormBranch) staffFormBranch.required = false;
         if (staffRoleGroup) staffRoleGroup.style.display = "none";
         if (staffFormRole) staffFormRole.required = false;
         if (staffAdminNotice) staffAdminNotice.style.display = "block";
       } else {
-        staffModalTitle.textContent = `แก้ไขข้อมูลพนักงาน (#${item.user_id})`;
-        if (btnSaveStaff) btnSaveStaff.textContent = "บันทึกข้อมูลพนักงาน";
+        staffModalTitle.textContent = `แก้ไขพนักงาน ${item.name}`;
+        if (btnSaveStaff) btnSaveStaff.textContent = "บันทึกพนักงาน";
         if (staffBranchGroup) staffBranchGroup.style.display = "block";
         if (staffFormBranch) {
           staffFormBranch.required = true;
@@ -348,11 +348,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (staffAdminNotice) staffAdminNotice.style.display = "none";
       }
     } else {
-      staffModalTitle.textContent = "เพิ่มพนักงานใหม่ (Cashier / Barista)";
-      if (btnSaveStaff) btnSaveStaff.textContent = "บันทึกข้อมูลพนักงาน";
+      staffModalTitle.textContent = "เพิ่มพนักงาน";
+      if (btnSaveStaff) btnSaveStaff.textContent = "บันทึกพนักงาน";
       staffFormId.value = "";
       staffForm.reset();
-      staffPasswordHint.textContent = "(กำหนดอย่างน้อย 4 ตัวอักษร)";
+      staffPasswordHint.textContent = "อย่างน้อย 4 ตัวอักษร";
 
       if (staffBranchGroup) staffBranchGroup.style.display = "block";
       if (staffFormBranch) {
@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } finally {
       btnSubmit.disabled = false;
-      btnSubmit.textContent = "บันทึกข้อมูลพนักงาน";
+      btnSubmit.textContent = "บันทึกพนักงาน";
     }
   });
 
@@ -440,8 +440,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       title: "ยืนยันการลบบัญชีพนักงาน",
       message: `คุณต้องการลบพนักงาน "${name}" ออกจากระบบ Whatever Cafe หรือไม่?`,
       subtext: "ประวัติรายการขายในอดีตของพนักงานท่านนี้จะยังคงถูกบันทึกไว้อย่างถูกต้อง",
-      icon: "👤",
-      confirmText: "ลบบัญชีนี้",
+            confirmText: "ลบบัญชีนี้",
       cancelText: "ยกเลิก",
       type: "danger",
     });
@@ -476,7 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (filtered.length === 0) {
       memberTableBody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center" style="padding: 30px; color: var(--wn-gray);">
+          <td colspan="7" class="wn-empty-row">
             ไม่พบข้อมูลสมาชิก Cafe Club ที่ตรงกับการค้นหา
           </td>
         </tr>
@@ -487,11 +486,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     memberTableBody.innerHTML = filtered
       .map((m) => {
         const ratePercent = Math.round(Number(m.discount_rate || 0.05) * 100);
-        let discountBadge = `<span class="wn-role-badge cashier">ลด ${ratePercent}% (มาตรฐาน)</span>`;
+        let discountBadge = `<span class="wn-role-badge">${ratePercent}%</span>`;
         if (ratePercent >= 15) {
-          discountBadge = `<span class="wn-role-badge admin">ลด ${ratePercent}% (VIP Platinum)</span>`;
+          discountBadge = `<span class="wn-role-badge admin">${ratePercent}% Platinum</span>`;
         } else if (ratePercent >= 10) {
-          discountBadge = `<span class="wn-role-badge manager">ลด ${ratePercent}% (VIP Gold)</span>`;
+          discountBadge = `<span class="wn-role-badge barista">${ratePercent}% Gold</span>`;
         }
 
         const formattedPhone = formatPhone(m.phone);
@@ -499,22 +498,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         return `
           <tr>
-            <td style="font-weight: 600; color: var(--wn-gray);">#${m.member_id}</td>
-            <td style="font-weight: 600; color: var(--wn-dark);">${escapeHtml(m.name)}</td>
-            <td><strong style="color: #166534; font-family: monospace; font-size: 13px;">${formattedPhone}</strong></td>
+            <td class="wn-id">${m.member_id}</td>
+            <td class="wn-strong">${escapeHtml(m.name)}</td>
+            <td>${formattedPhone}</td>
             <td class="text-center">
-              <span style="background: #fef3c7; color: #92400e; font-weight: 700; padding: 2px 8px; border-radius: 3px; font-size: 12.5px;">
-                ${Number(m.points || 0).toLocaleString()} แต้ม
-              </span>
+              <span class="wn-points">${Number(m.points || 0).toLocaleString()}</span>
             </td>
             <td class="text-center">${discountBadge}</td>
-            <td style="color: var(--wn-gray); font-size: 12px;">${joinDate}</td>
+            <td class="wn-muted">${joinDate}</td>
             <td class="text-right">
               <div style="display: inline-flex; gap: 6px;">
-                <button type="button" class="wn-btn wn-btn-secondary btn-edit-member" data-id="${m.member_id}" style="padding: 4px 10px; font-size: 11.5px;">
-                  ✏️ แก้ไข
+                <button type="button" class="wn-btn wn-btn-secondary btn-edit-member" data-id="${m.member_id}" style="padding: 4px 10px; font-size: 13px;">
+                  แก้ไข
                 </button>
-                <button type="button" class="wn-btn wn-btn-outline-danger btn-delete-member" data-id="${m.member_id}" data-name="${escapeHtml(m.name)}" style="padding: 4px 8px; font-size: 11.5px;">
+                <button type="button" class="wn-btn wn-btn-outline-danger btn-delete-member" data-id="${m.member_id}" data-name="${escapeHtml(m.name)}" style="padding: 4px 10px; font-size: 13px;">
                   ลบ
                 </button>
               </div>
@@ -548,14 +545,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function openMemberModal(item = null) {
     if (item) {
-      memberModalTitle.textContent = `แก้ไขข้อมูลสมาชิก (#${item.member_id})`;
+      memberModalTitle.textContent = `แก้ไขสมาชิก ${item.name}`;
       memberFormId.value = item.member_id;
       memberFormName.value = item.name || "";
       memberFormPhone.value = item.phone || "";
       memberFormPoints.value = item.points || 0;
       memberFormDiscount.value = Number(item.discount_rate || 0.05).toFixed(2);
     } else {
-      memberModalTitle.textContent = "เพิ่มสมาชิก Cafe Club ใหม่";
+      memberModalTitle.textContent = "เพิ่มสมาชิก";
       memberFormId.value = "";
       memberForm.reset();
       memberFormPoints.value = 0;
@@ -620,7 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } finally {
       btnSubmit.disabled = false;
-      btnSubmit.textContent = "บันทึกข้อมูลสมาชิก";
+      btnSubmit.textContent = "บันทึกสมาชิก";
     }
   });
 
@@ -629,8 +626,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       title: "ยืนยันการลบสมาชิก Cafe Club",
       message: `คุณต้องการลบสมาชิก "${name}" หรือไม่?`,
       subtext: "สิทธิประโยชน์ ส่วนลด 5% และแต้มสะสมทั้งหมดจะถูกยกเลิก",
-      icon: "🌟",
-      confirmText: "ลบสมาชิกนี้",
+            confirmText: "ลบสมาชิกนี้",
       cancelText: "ยกเลิก",
       type: "danger",
     });
@@ -666,28 +662,28 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="wn-branch-card">
             <div>
               <div class="wn-branch-card-title">
-                <span>🏪 ${escapeHtml(b.name)}</span>
-                <span class="wn-role-badge cashier">สาขา #${b.branch_id}</span>
+                <span>${escapeHtml(b.name)}</span>
+                <span class="wn-role-badge">รหัส ${b.branch_id}</span>
               </div>
               <div class="wn-branch-card-address">
-                📍 ${escapeHtml(b.address || "ไม่ระบุที่อยู่")}
+                ${escapeHtml(b.address || "ยังไม่ได้ใส่ที่อยู่")}
               </div>
             </div>
 
             <div>
               <div class="wn-branch-stats">
                 <div class="wn-branch-stat-item">
-                  <span>👥 พนักงาน</span>
-                  <strong>${Number(b.staff_count || 0)} ท่าน</strong>
+                  <span>พนักงาน</span>
+                  <strong>${Number(b.staff_count || 0)} <small>คน</small></strong>
                 </div>
                 <div class="wn-branch-stat-item">
-                  <span>☕ เมนูประจำสาขา</span>
-                  <strong>${Number(b.menu_count || 0)} เมนู</strong>
+                  <span>เมนูที่ขาย</span>
+                  <strong>${Number(b.menu_count || 0)} <small>รายการ</small></strong>
                 </div>
               </div>
 
-              <button type="button" class="wn-btn wn-btn-secondary btn-edit-branch" data-id="${b.branch_id}" style="width: 100%; justify-content: center;">
-                ✏️ แก้ไขข้อมูลสาขา
+              <button type="button" class="wn-btn wn-btn-secondary btn-edit-branch" data-id="${b.branch_id}" style="width: 100%;">
+                แก้ไขสาขา
               </button>
             </div>
           </div>
@@ -706,12 +702,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function openBranchModal(item = null) {
     if (item) {
-      branchModalTitle.textContent = `แก้ไขข้อมูลสาขา (#${item.branch_id})`;
+      branchModalTitle.textContent = `แก้ไขสาขา${item.name}`;
       branchFormId.value = item.branch_id;
       branchFormName.value = item.name || "";
       branchFormAddress.value = item.address || "";
     } else {
-      branchModalTitle.textContent = "เพิ่มสาขาใหม่ (Whatever Cafe Network)";
+      branchModalTitle.textContent = "เพิ่มสาขา";
       branchFormId.value = "";
       branchForm.reset();
     }
@@ -761,7 +757,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } finally {
       btnSubmit.disabled = false;
-      btnSubmit.textContent = "บันทึกข้อมูลสาขา";
+      btnSubmit.textContent = "บันทึกสาขา";
     }
   });
 

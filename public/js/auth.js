@@ -7,6 +7,15 @@
  */
 
 const Auth = {
+  // Escape text before it goes into innerHTML (names come from the database)
+  escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  },
+
+  // Coffee-cup mark shown inside the orange circle in the top bar
+  brandMarkSvg:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.8 1 .8 2 0 3M12 3.5c-.8 1 .8 2 0 3"/></svg>',
+
   getToken() {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -90,15 +99,20 @@ const Auth = {
   },
 
   getRolePageTitle(role, pageName = "") {
-    if (role === "cashier") return "หน้าขายหน้าร้าน (POS)";
-    if (role === "barista") return "บาร์เครื่องดื่ม (Barista KDS)";
-    if (role === "admin") {
-      return "หน้าควบคุมระบบ (HQ - ทุกสาขา)";
-    }
-    if (role === "manager") {
-      return pageName === "menu" ? "หน้าจัดการเมนู & สต็อก" : "หน้ารายงานยอดขาย (ทุกสาขา)";
-    }
+    if (role === "cashier") return "ขายหน้าร้าน";
+    if (role === "barista") return "บาร์";
+    if (role === "admin") return "สำนักงานใหญ่";
     return "";
+  },
+
+  getRoleLabel(role) {
+    const labels = {
+      cashier: "แคชเชียร์",
+      barista: "บาริสต้า",
+      manager: "ผู้จัดการร้าน",
+      admin: "ผู้ดูแลระบบ",
+    };
+    return labels[role] || role;
   },
 
   // ตรวจสอบสิทธิ์เฉพาะเจาะจงของหน้านั้น ๆ
@@ -166,7 +180,7 @@ const Auth = {
     }
     const toast = document.createElement("div");
     toast.className = `wn-toast ${type}`;
-    toast.innerHTML = `<span>${message}</span>`;
+    toast.innerHTML = `<span>${Auth.escapeHtml(message)}</span>`;
     container.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = "0";
@@ -209,11 +223,7 @@ const Auth = {
     let navLinksHtml = "";
 
     if (user.role === "admin") {
-      branchWidgetHtml = `
-        <div class="wn-branch-locked" title="Admin สำนักงานใหญ่ ดูแลทุกสาขา" style="display:flex;align-items:center;gap:6px;background:rgba(242,101,34,0.18);padding:6px 14px;border-radius:var(--wn-radius);font-size:12.5px;color:#ffedd5;border:1px solid rgba(242,101,34,0.35);">
-          <span>ทุกสาขา (สำนักงานใหญ่ HQ)</span>
-        </div>
-      `;
+      branchWidgetHtml = `<div class="wn-branch-locked">ทุกสาขา</div>`;
       navLinksHtml = "";
     } else if (user.role === "manager") {
       const branchOptions = branches
@@ -221,13 +231,13 @@ const Auth = {
           (b) =>
             `<option value="${b.branch_id}" ${
               b.branch_id === currentBranchId ? "selected" : ""
-            }>${b.name}</option>`
+            }>${Auth.escapeHtml(b.name)}</option>`
         )
         .join("");
 
       branchWidgetHtml = `
         <div class="wn-branch-select-box">
-          <label for="wnNavBranch">สาขา:</label>
+          <label for="wnNavBranch" class="wn-sr-only">สาขา</label>
           <select id="wnNavBranch" class="wn-branch-select">
             ${branchOptions}
           </select>
@@ -235,11 +245,13 @@ const Auth = {
       `;
       navLinksHtml = `
         <div class="wn-nav-links">
-          <a href="/menu.html" class="wn-nav-item ${pageName === "menu" ? "active" : ""}">
-            จัดการเมนู & สต็อก
+          <a href="/menu.html" class="wn-nav-item ${pageName === "menu" ? "active" : ""}" ${pageName === "menu" ? 'aria-current="page"' : ""}>
+            <svg class="wn-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M9 3v2M12 3v2"/></svg>
+            เมนูและสต็อก
           </a>
-          <a href="/report.html" class="wn-nav-item ${pageName === "report" ? "active" : ""}">
-            รายงานยอดขาย (ทุกสาขา)
+          <a href="/report.html" class="wn-nav-item ${pageName === "report" ? "active" : ""}" ${pageName === "report" ? 'aria-current="page"' : ""}>
+            <svg class="wn-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+            ยอดขาย
           </a>
         </div>
       `;
@@ -247,50 +259,42 @@ const Auth = {
       const myBranch = branches.find((b) => b.branch_id === currentBranchId);
       const myBranchName = myBranch ? myBranch.name : user.branchName || "สาขาของฉัน";
 
-      branchWidgetHtml = `
-        <div class="wn-branch-locked" title="ล็อกตามบาร์เครื่องดื่มสาขานี้ ไม่สามารถเปลี่ยนสาขาได้" style="display:flex;align-items:center;gap:6px;background:rgba(217,119,6,0.18);padding:6px 14px;border-radius:var(--wn-radius);font-size:13px;color:#fef3c7;border:1px solid rgba(217,119,6,0.35);">
-          <span>บาร์${myBranchName}</span>
-          <span style="font-size:10.5px;background:rgba(217,119,6,0.3);padding:1px 6px;border-radius:4px;color:#fde68a;">Barista KDS</span>
-        </div>
-      `;
+      branchWidgetHtml = `<div class="wn-branch-locked">สาขา${this.escapeHtml(myBranchName)}</div>`;
       navLinksHtml = "";
     } else {
       const myBranch = branches.find((b) => b.branch_id === currentBranchId);
       const myBranchName = myBranch ? myBranch.name : user.branchName || "สาขาของฉัน";
 
-      branchWidgetHtml = `
-        <div class="wn-branch-locked" title="ล็อกตามพนักงานสาขานี้ ไม่สามารถเปลี่ยนสาขาได้" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);padding:6px 14px;border-radius:var(--wn-radius);font-size:13px;color:#cbd5e1;border:1px solid rgba(255,255,255,0.12);">
-          <span>${myBranchName}</span>
-          <span style="font-size:10.5px;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:4px;color:#94a3b8;">สาขาของคุณ</span>
-        </div>
-      `;
+      branchWidgetHtml = `<div class="wn-branch-locked">สาขา${this.escapeHtml(myBranchName)}</div>`;
     }
 
     header.innerHTML = `
       <nav class="wn-navbar">
         <div class="wn-brand">
-          <div class="wn-brand-badge">Whatever Cafe POS</div>
-          <div>
-            <div class="wn-brand-title">Whatever Cafe POS</div>
-            <div class="wn-brand-sub">${pageBadgeTitle}</div>
-          </div>
+          <span class="wn-brand-mark" aria-hidden="true">${this.brandMarkSvg}</span>
+          <div class="wn-brand-title">Whatever <span>cafe</span></div>
+          ${pageBadgeTitle ? `<div class="wn-brand-sub">${pageBadgeTitle}</div>` : ""}
         </div>
 
         ${navLinksHtml}
 
         <div class="wn-nav-right">
-          ${branchWidgetHtml}
-
-          <div class="wn-user-pill">
-            <div class="wn-user-avatar">${user.name.charAt(0) || "U"}</div>
-            <div class="wn-user-info">
-              <span class="wn-user-name">${user.name}</span>
-              <span class="wn-role-badge ${user.role}">${user.role}</span>
-            </div>
+          <div class="wn-nav-branch">
+            <svg class="wn-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            ${branchWidgetHtml}
           </div>
 
-          <button id="wnBtnLogout" class="wn-btn-logout" title="ออกจากระบบ">
-            ออกจากระบบ
+          <div class="wn-user-pill">
+            <span class="wn-user-avatar" aria-hidden="true">${this.escapeHtml((user.name || "?").trim().charAt(0))}</span>
+            <span class="wn-user-info">
+              <span class="wn-user-name" title="${this.escapeHtml(user.name)}">${this.escapeHtml(user.name)}</span>
+              <span class="wn-user-role">${this.getRoleLabel(user.role)}</span>
+            </span>
+          </div>
+
+          <button id="wnBtnLogout" class="wn-btn-logout" aria-label="ออกจากระบบ">
+            <svg class="wn-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>
+            <span>ออกจากระบบ</span>
           </button>
         </div>
       </nav>
@@ -330,7 +334,6 @@ const Auth = {
     title = "ยืนยันการดำเนินการ",
     message = "คุณแน่ใจหรือไม่ที่จะดำเนินการนี้?",
     subtext = "",
-    icon = "❓",
     confirmText = "ยืนยัน",
     cancelText = "ยกเลิก",
     type = "primary", // 'danger' | 'warning' | 'primary'
@@ -352,13 +355,10 @@ const Auth = {
           : "wn-btn wn-btn-primary";
 
       overlay.innerHTML = `
-        <div class="wn-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="wnConfirmTitle">
-          <div class="wn-confirm-icon-wrap ${type}">
-            ${icon}
-          </div>
-          <h3 id="wnConfirmTitle" class="wn-confirm-title">${title}</h3>
-          <p class="wn-confirm-message">${message}</p>
-          ${subtext ? `<p class="wn-confirm-subtext">${subtext}</p>` : ""}
+        <div class="wn-confirm-modal ${type}" role="dialog" aria-modal="true" aria-labelledby="wnConfirmTitle">
+          <h3 id="wnConfirmTitle" class="wn-confirm-title">${Auth.escapeHtml(title)}</h3>
+          <p class="wn-confirm-message">${Auth.escapeHtml(message)}</p>
+          ${subtext ? `<p class="wn-confirm-subtext">${Auth.escapeHtml(subtext)}</p>` : ""}
           <div class="wn-confirm-actions">
             <button type="button" class="wn-btn wn-btn-secondary" id="wnConfirmBtnCancel">${cancelText}</button>
             <button type="button" class="${btnConfirmClass}" id="wnConfirmBtnOk">${confirmText}</button>
@@ -414,7 +414,6 @@ const Auth = {
       title: "ยืนยันการออกจากระบบ",
       message: "คุณต้องการออกจากระบบ Whatever Cafe POS หรือไม่?",
       subtext: "เซสชันการทำงานปัจจุบันจะสิ้นสุดลง และจะต้องลงชื่อเข้าใช้ใหม่อีกครั้ง",
-      icon: "🚪",
       confirmText: "ออกจากระบบ",
       cancelText: "ยกเลิก",
       type: "danger",
@@ -429,7 +428,6 @@ const Auth = {
       title: "ยืนยันการล้างบิล",
       message: "คุณต้องการล้างรายการเครื่องดื่มทั้งหมดในบิลนี้หรือไม่?",
       subtext: "รายการที่เลือกไว้ทั้งหมดและสิทธิ์สมาชิกจะถูกลบออกจากบิลปัจจุบัน",
-      icon: "🗑️",
       confirmText: "ล้างบิลทันที",
       cancelText: "ยกเลิก",
       type: "danger",
@@ -444,7 +442,6 @@ const Auth = {
       title: "ยืนยันการลบเมนู",
       message: `คุณต้องการลบเมนู "${menuName}" ออกจากระบบหรือไม่?`,
       subtext: "การลบจะไม่สามารถกู้คืนได้ และเมนูนี้จะไม่ปรากฏในหน้าขายหน้าร้านอีกต่อไป",
-      icon: "⚠️",
       confirmText: "ลบเมนูนี้",
       cancelText: "ยกเลิก",
       type: "danger",

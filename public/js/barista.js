@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   btnSoundToggle.addEventListener("click", () => {
     soundEnabled = !soundEnabled;
     soundStateText.textContent = soundEnabled ? "เปิด" : "ปิด";
-    soundStateText.style.color = soundEnabled ? "#16a34a" : "var(--wn-danger)";
+    soundStateText.style.color = soundEnabled ? "var(--pandan)" : "var(--ink-3)";
     if (soundEnabled) {
       playNewOrderSound();
       Auth.showToast("เปิดเสียงแจ้งเตือนออเดอร์ใหม่เรียบร้อย", "info");
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           );
           if (incomingOrders.length > 0) {
             playNewOrderSound();
-            Auth.showToast(`🔔 มีออเดอร์ใหม่ ${incomingOrders.length} รายการเข้ามาที่บาร์!`, "info");
+            Auth.showToast(`ออเดอร์ใหม่เข้าบาร์ ${incomingOrders.length} ใบ`, "info");
           }
         }
 
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnManualRefresh.textContent = "⏳ กำลังโหลด...";
     await fetchQueue();
     btnManualRefresh.disabled = false;
-    btnManualRefresh.textContent = "🔄 รีเฟรช";
+    btnManualRefresh.textContent = "รีเฟรช";
   });
 
   // ==========================================================================
@@ -190,9 +190,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (filtered.length === 0) {
       kdsOrderGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center; background: #ffffff; border-radius: var(--wn-radius); border: 1px dashed var(--wn-border);">
-          <h3 style="font-size: 16px; color: var(--wn-dark); margin-bottom: 4px;">ไม่มีรายการออเดอร์ในหมวดนี้</h3>
-          <p style="color: var(--wn-gray); font-size: 12.5px;">บาร์เครื่องดื่มพร้อมรับออเดอร์ใหม่จากแคชเชียร์หน้าร้าน</p>
+        <div class="wn-kds-empty">
+          <strong>ไม่มีใบสั่งในช่องนี้</strong>
+          ออเดอร์ใหม่จากแคชเชียร์จะขึ้นที่นี่เอง
         </div>
       `;
       return;
@@ -208,44 +208,42 @@ document.addEventListener("DOMContentLoaded", async () => {
         let actionButtons = "";
 
         if (order.status === "pending") {
-          statusBadge = '<span class="wn-role-badge" style="background:#fef3c7; color:#92400e;">รอคิวชง</span>';
+          statusBadge = '<span class="wn-status">รอชง</span>';
           actionButtons = `
             <button type="button" class="wn-kds-btn wn-kds-btn-start btn-status-action" data-id="${order.order_id}" data-status="preparing">
-              เริ่มปรุง
+              เริ่มชง
             </button>
           `;
         } else if (order.status === "preparing") {
-          statusBadge = '<span class="wn-role-badge" style="background:#e0f2fe; color:#0369a1;">กำลังปรุง</span>';
+          statusBadge = '<span class="wn-status">กำลังชง</span>';
           actionButtons = `
             <button type="button" class="wn-kds-btn wn-kds-btn-ready btn-status-action" data-id="${order.order_id}" data-status="ready">
               พร้อมเสิร์ฟ
             </button>
           `;
         } else if (order.status === "ready") {
-          statusBadge = '<span class="wn-role-badge cashier" style="background:#dcfce7; color:#15803d;">พร้อมเสิร์ฟ</span>';
+          statusBadge = '<span class="wn-status">พร้อมเสิร์ฟ</span>';
           actionButtons = `
             <button type="button" class="wn-kds-btn wn-kds-btn-complete btn-status-action" data-id="${order.order_id}" data-status="completed">
-              ส่งมอบแล้ว (เสร็จสิ้น)
+              ส่งให้ลูกค้าแล้ว
             </button>
           `;
         } else if (order.status === "completed") {
-          statusBadge = '<span class="wn-role-badge" style="background:#f1f5f9; color:#64748b;">เสร็จสิ้น</span>';
+          statusBadge = '<span class="wn-status">ส่งแล้ว</span>';
           actionButtons = `
-            <div style="font-size: 12px; color: var(--wn-gray); text-align: center; width: 100%; padding: 4px;">
-              เสิร์ฟเรียบร้อยแล้ว
-            </div>
+            <div class="wn-kds-done">ส่งให้ลูกค้าแล้ว</div>
           `;
         }
 
         const itemsHtml = (order.items || [])
           .map((item) => {
             const notesBadge = item.notes
-              ? `<div class="wn-kds-item-notes">หมายเหตุ: ${escapeHtml(item.notes)}</div>`
+              ? `<div class="wn-kds-item-notes">${escapeHtml(item.notes)}</div>`
               : "";
 
             return `
               <div class="wn-kds-item-row">
-                <div class="wn-kds-item-qty">x${item.quantity}</div>
+                <div class="wn-kds-item-qty">${item.quantity}×</div>
                 <div class="wn-kds-item-info">
                   <div class="wn-kds-item-name">${escapeHtml(item.menu_name || "เครื่องดื่ม")}</div>
                   ${notesBadge}
@@ -256,18 +254,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           .join("");
 
         const memberTag = order.member_name
-          ? `<span style="color: #166534; font-weight: 500;">สมาชิก: ${escapeHtml(order.member_name)}</span>`
+          ? `<span class="member">สมาชิก ${escapeHtml(order.member_name)}</span>`
           : `<span>แคชเชียร์: ${escapeHtml(order.cashier_name || "หน้าร้าน")}</span>`;
 
         return `
           <div class="wn-kds-card status-${order.status}">
             <div class="wn-kds-card-header">
               <div class="wn-kds-order-num">${orderIdFormatted}</div>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <div class="wn-kds-timer ${isUrgent ? "urgent" : ""}">
-                  ${timeElapsed.text}
-                </div>
+              <div class="wn-kds-head-right">
                 ${statusBadge}
+                <div class="wn-kds-timer ${isUrgent ? "urgent" : ""}">${timeElapsed.text}</div>
               </div>
             </div>
 

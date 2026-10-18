@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const res = await fetch("/api/branches");
       const branches = res.ok ? await res.json() : [];
-      let html = `<option value="all">ทุกสาขา (ภาพรวมสำนักงานใหญ่)</option>`;
+      let html = `<option value="all">ทุกสาขา</option>`;
       branches.forEach((b) => {
         html += `<option value="${b.branch_id}">${b.name}</option>`;
       });
@@ -45,9 +45,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       reportBranch.value = "all";
     } catch (e) {
       reportBranch.innerHTML = `
-        <option value="all">ทุกสาขา (ภาพรวม)</option>
-        <option value="1">สาขาสยาม</option>
-        <option value="2">สาขาสีลม</option>
+        <option value="all">ทุกสาขา</option>
+        <option value="1">สยาม</option>
+        <option value="2">สีลม</option>
       `;
     }
   }
@@ -65,15 +65,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   reportBranch.addEventListener("change", () => {
     loadReport();
   });
-
-  function getDrinkEmoji(name) {
-    const n = String(name).toLowerCase();
-    if (n.includes("ชาไทย") || n.includes("ชานม") || n.includes("ไข่มุก")) return "🧋";
-    if (n.includes("ชาเขียว") || n.includes("มัทฉะ") || n.includes("ชา")) return "🍵";
-    if (n.includes("ลาเต้") || n.includes("คาปู") || n.includes("อเมริกาโน่") || n.includes("เอสเปรสโซ่") || n.includes("กาแฟ")) return "☕";
-    if (n.includes("โกโก้") || n.includes("นม") || n.includes("ช็อกโกแลต")) return "🥛";
-    return "🥤";
-  }
 
   function formatYMD(date) {
     const y = date.getFullYear();
@@ -170,13 +161,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const avgTicket = orderCount > 0 ? totalSales / orderCount : 0;
 
     kpiTotalSales.textContent = `฿${totalSales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    kpiOrderCount.textContent = `${orderCount.toLocaleString()} บิล`;
+    kpiOrderCount.textContent = orderCount.toLocaleString();
     kpiAvgTicket.textContent = `฿${avgTicket.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     // Render Branch Breakdown
     if (!byBranch || byBranch.length === 0) {
       branchTableBody.innerHTML = `
-        <tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--wn-gray);">ไม่มีข้อมูลยอดขายในสาขาที่เลือก</td></tr>
+        <tr><td colspan="4" class="wn-empty-row">ไม่มียอดขายในช่วงวันที่นี้ ลองขยายช่วงวันที่ หรือเลือกทุกสาขา</td></tr>
       `;
     } else {
       branchTableBody.innerHTML = byBranch
@@ -185,11 +176,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           const percent = totalSales > 0 ? ((sales / totalSales) * 100).toFixed(1) : "0.0";
           return `
             <tr>
-              <td style="font-weight: 600;">${b.branchName}</td>
+              <td class="wn-strong">${b.branchName}</td>
               <td class="text-center">${Number(b.orders || 0)} บิล</td>
-              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td class="wn-money">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               <td class="text-right">
-                <span style="background: var(--wn-green-light); color: var(--wn-green-dark); padding: 2px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
+                <span class="wn-share">
+                  <span class="wn-share-bar"><i style="width: ${percent}%"></i></span>
                   ${percent}%
                 </span>
               </td>
@@ -202,7 +194,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Render Top Menus
     if (!topMenus || topMenus.length === 0) {
       topMenusTableBody.innerHTML = `
-        <tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--wn-gray);">ไม่มีข้อมูลเมนูขายดีในช่วงเวลานี้</td></tr>
+        <tr><td colspan="4" class="wn-empty-row">ยังไม่มีเมนูที่ขายได้ในช่วงนี้</td></tr>
       `;
     } else {
       topMenusTableBody.innerHTML = topMenus
@@ -212,12 +204,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           const sales = Number(m.sales || 0);
           return `
             <tr>
-              <td style="font-size: 14px; font-weight: 700; color: var(--wn-gray);">${rank}</td>
-              <td>
-                <div style="font-weight: 600; color: var(--wn-dark);">${m.name}</div>
-              </td>
-              <td class="text-center" style="font-weight: 600;">${qty} แก้ว</td>
-              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td class="wn-rank ${index < 3 ? "top" : ""}">${index + 1}</td>
+              <td class="wn-strong">${m.name}</td>
+              <td class="text-right">${qty}</td>
+              <td class="wn-money">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             </tr>
           `;
         })

@@ -4,92 +4,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เข้าสู่ระบบ - Whatever Cafe POS</title>
+  <title>เข้าสู่ระบบ - Whatever Cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400..700&family=IBM+Plex+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="/css/whatever-cafe.css">
 </head>
 
 <body class="wn-login-body">
 
-  <div class="wn-login-card">
-    <div class="wn-login-header">
-      <div class="wn-login-logo">
-        Whatever Cafe POS
+  <div class="wn-login-sheet">
+    <div class="wn-login-card">
+      <div class="wn-login-header">
+        <div class="wn-login-logo">
+          <span class="wn-brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5c-.8 1 .8 2 0 3M12 3.5c-.8 1 .8 2 0 3"/></svg>
+          </span>
+          <div>Whatever <span>cafe</span></div>
+        </div>
+        <h1 class="wn-login-title">เปิดกะทำงาน</h1>
+        <p class="wn-login-subtitle">ใช้อีเมลและรหัสผ่านที่ร้านให้ไว้</p>
       </div>
-      <h1 class="wn-login-title">เข้าสู่ระบบ Whatever Cafe POS</h1>
-      <p class="wn-login-subtitle">ระบบบริหารจัดการร้านกาแฟและการขายหน้าร้าน</p>
+
+      <form id="loginForm" novalidate>
+        <div class="wn-form-group">
+          <label class="wn-form-label" for="loginEmail">อีเมล</label>
+          <input type="email" id="loginEmail" class="wn-input" placeholder="name@cafe.com" required
+            autocomplete="email">
+        </div>
+
+        <div class="wn-form-group">
+          <label class="wn-form-label" for="loginPassword">รหัสผ่าน</label>
+          <input type="password" id="loginPassword" class="wn-input" required
+            autocomplete="current-password">
+        </div>
+
+        <div id="loginError" class="wn-form-error" role="alert" style="display: none;"></div>
+
+        <button type="submit" id="btnSubmitLogin" class="wn-btn wn-btn-primary wn-login-submit">
+          เข้าสู่ระบบ
+        </button>
+      </form>
     </div>
 
-    <form id="loginForm" novalidate>
-      <div class="wn-form-group">
-        <label class="wn-form-label" for="loginEmail">อีเมล (Email)</label>
-        <input type="email" id="loginEmail" class="wn-input" placeholder="example@cafe.com" required
-          autocomplete="email">
-      </div>
-
-      <div class="wn-form-group">
-        <label class="wn-form-label" for="loginPassword">รหัสผ่าน (Password)</label>
-        <input type="password" id="loginPassword" class="wn-input" placeholder="••••••••" required
-          autocomplete="current-password">
-      </div>
-
-      <div id="loginError" style="color: var(--wn-danger); font-size: 13px; margin-bottom: 12px; display: none;"></div>
-
-      <button type="submit" id="btnSubmitLogin" class="wn-btn wn-btn-primary"
-        style="width: 100%; padding: 12px; font-size: 15px; font-weight: 600;">
-        เข้าสู่ระบบ (Sign In)
-      </button>
-    </form>
-
-    <!-- Quick Demo Accounts -->
     <div class="wn-demo-accounts">
-      <div class="wn-demo-title">บัญชีทดสอบกำหนดสิทธิ์และล็อกสาขา (Role & Branch Access)</div>
+      <h2 class="wn-demo-title">บัญชีทดลอง</h2>
+      <p class="wn-demo-intro">กดเพื่อเข้าระบบทันที รหัสผ่านทุกบัญชีคือ password123</p>
       <div class="wn-demo-buttons">
         <button type="button" class="wn-demo-btn" data-email="cashier@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #166534;">Cashier สยาม (ขายหน้าร้าน)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">cashier@cafe.com • <strong>ล็อกสาขาสยาม</strong> (ไม่มี Navbar / เปลี่ยนสาขาไม่ได้)</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+          <strong>แคชเชียร์</strong>
+          <span>สาขาสยาม</span>
+          <em>cashier@cafe.com</em>
         </button>
 
         <button type="button" class="wn-demo-btn" data-email="cashier2@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #166534;">Cashier สีลม (ขายหน้าร้าน)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">cashier2@cafe.com • <strong>ล็อกสาขาสีลม</strong> (ไม่มี Navbar / เปลี่ยนสาขาไม่ได้)</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+          <strong>แคชเชียร์</strong>
+          <span>สาขาสีลม</span>
+          <em>cashier2@cafe.com</em>
         </button>
 
         <button type="button" class="wn-demo-btn" data-email="barista@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #92400e;">Barista สยาม (บาร์เครื่องดื่ม KDS)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">barista@cafe.com • <strong>บาร์สาขาสยาม</strong> (รับคิวออเดอร์, ปรุงเครื่องดื่ม, อัปเดตสถานะ)</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+          <strong>บาริสต้า</strong>
+          <span>บาร์สาขาสยาม</span>
+          <em>barista@cafe.com</em>
         </button>
 
         <button type="button" class="wn-demo-btn" data-email="barista2@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #92400e;">Barista สีลม (บาร์เครื่องดื่ม KDS)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">barista2@cafe.com • <strong>บาร์สาขาสีลม</strong> (รับคิวออเดอร์, ปรุงเครื่องดื่ม, อัปเดตสถานะ)</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+          <strong>บาริสต้า</strong>
+          <span>บาร์สาขาสีลม</span>
+          <em>barista2@cafe.com</em>
         </button>
 
-        <button type="button" class="wn-demo-btn" data-email="manager@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #1e40af;">Manager (ผู้จัดการร้าน)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">manager@cafe.com • <strong>ดูรายงานได้ทุกสาขา</strong> / จัดการเมนู & สลับสาขาได้</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+        <button type="button" class="wn-demo-btn wide" data-email="manager@cafe.com" data-pass="password123">
+          <strong>ผู้จัดการร้าน</strong>
+          <span>แก้เมนูและสต็อก ดูยอดขายได้ทุกสาขา</span>
+          <em>manager@cafe.com</em>
         </button>
 
-        <button type="button" class="wn-demo-btn" data-email="admin@cafe.com" data-pass="password123">
-          <div>
-            <strong style="color: #b45309;">Admin (ผู้ดูแลระบบสูงสุด HQ - คุมทุกสาขา)</strong>
-            <div style="font-size: 11px; color: var(--wn-gray);">admin@cafe.com • <strong>คุมทุกสาขา</strong> | จัดการพนักงาน (ยกเว้น Manager), สมาชิก & โปรโมชั่น, สาขา (ไม่เข้าถึงรายงานยอดขาย)</div>
-          </div>
-          <span style="color: var(--wn-green); font-weight: 600;">เลือก</span>
+        <button type="button" class="wn-demo-btn wide" data-email="admin@cafe.com" data-pass="password123">
+          <strong>ผู้ดูแลระบบสำนักงานใหญ่</strong>
+          <span>จัดการพนักงาน สมาชิก และสาขา</span>
+          <em>admin@cafe.com</em>
         </button>
       </div>
     </div>

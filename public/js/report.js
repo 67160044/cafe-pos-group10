@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await Auth.renderNavbar("report");
 
   const currentUser = Auth.getUser();
+  const isAdmin = currentUser?.role === "admin";
+  const isManager = currentUser?.role === "manager";
 
   const reportFrom = document.getElementById("reportFrom");
   const reportTo = document.getElementById("reportTo");
@@ -160,32 +162,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const { summary, by_branch, top_menus } = res.data;
+    const { summary, byBranch, topMenus } = res.data;
 
     // Render KPIs
-    const totalSales = Number(summary?.total_sales || 0);
-    const orderCount = Number(summary?.order_count || 0);
+    const totalSales = Number(summary?.totalSales || 0);
+    const orderCount = Number(summary?.orderCount || 0);
     const avgTicket = orderCount > 0 ? totalSales / orderCount : 0;
 
-    kpiTotalSales.textContent = `฿${totalSales.toLocaleString("th-TH", { minimumFractionDigits: 2 })}`;
+    kpiTotalSales.textContent = `฿${totalSales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     kpiOrderCount.textContent = `${orderCount.toLocaleString()} บิล`;
-    kpiAvgTicket.textContent = `฿${avgTicket.toLocaleString("th-TH", { minimumFractionDigits: 2 })}`;
+    kpiAvgTicket.textContent = `฿${avgTicket.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     // Render Branch Breakdown
-    if (!by_branch || by_branch.length === 0) {
+    if (!byBranch || byBranch.length === 0) {
       branchTableBody.innerHTML = `
         <tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--wn-gray);">ไม่มีข้อมูลยอดขายในสาขาที่เลือก</td></tr>
       `;
     } else {
-      branchTableBody.innerHTML = by_branch
+      branchTableBody.innerHTML = byBranch
         .map((b) => {
           const sales = Number(b.sales || 0);
           const percent = totalSales > 0 ? ((sales / totalSales) * 100).toFixed(1) : "0.0";
           return `
             <tr>
-              <td style="font-weight: 600;">${b.branch_name}</td>
+              <td style="font-weight: 600;">${b.branchName}</td>
               <td class="text-center">${Number(b.orders || 0)} บิล</td>
-              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</td>
+              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               <td class="text-right">
                 <span style="background: var(--wn-green-light); color: var(--wn-green-dark); padding: 2px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
                   ${percent}%
@@ -198,12 +200,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Render Top Menus
-    if (!top_menus || top_menus.length === 0) {
+    if (!topMenus || topMenus.length === 0) {
       topMenusTableBody.innerHTML = `
         <tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--wn-gray);">ไม่มีข้อมูลเมนูขายดีในช่วงเวลานี้</td></tr>
       `;
     } else {
-      topMenusTableBody.innerHTML = top_menus
+      topMenusTableBody.innerHTML = topMenus
         .map((m, index) => {
           const rank = `#${index + 1}`;
           const qty = Number(m.quantity || 0);
@@ -215,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div style="font-weight: 600; color: var(--wn-dark);">${m.name}</div>
               </td>
               <td class="text-center" style="font-weight: 600;">${qty} แก้ว</td>
-              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</td>
+              <td class="text-right" style="font-weight: 700; color: var(--wn-green);">฿${sales.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             </tr>
           `;
         })

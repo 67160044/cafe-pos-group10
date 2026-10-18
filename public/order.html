@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ขายหน้าร้าน (POS) - Whatever Cafe POS</title>
   <link rel="stylesheet" href="/css/whatever-cafe.css">
+  <style>
+    /* พิมพ์ใบเสร็จ: เมื่อหน้าต่างใบเสร็จเปิดอยู่ ให้พิมพ์เฉพาะใบเสร็จ 1 หน้า (ไม่พิมพ์หน้า POS ที่อยู่ด้านหลัง)
+       ไม่มีผลต่อการแสดงผลบนหน้าจอ และถ้าไม่ได้เปิดใบเสร็จอยู่ การพิมพ์หน้าเว็บจะเป็นปกติ */
+    @media print {
+      @page { margin: 6mm; }
+      body:has(#receiptModal:not(.hidden)) > *:not(#receiptModal) {
+        display: none !important;
+      }
+      body:has(#receiptModal:not(.hidden)) #receiptModal {
+        position: static !important;
+        display: block !important;
+        background: none !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+      }
+      body:has(#receiptModal:not(.hidden)) .wn-receipt-paper {
+        max-width: none !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+      }
+      body:has(#receiptModal:not(.hidden)) .wn-receipt-paper > div:last-child {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
 

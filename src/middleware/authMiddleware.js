@@ -1,7 +1,16 @@
 // src/middleware/authMiddleware.js
 const crypto = require("crypto");
 
-const JWT_SECRET = process.env.JWT_SECRET || "whatever-cafe-pos-secure-key-2026";
+// ไม่ใช้ secret สำรองที่เขียนตายตัวในโค้ด: ถ้าไม่ได้ตั้ง JWT_SECRET จะสุ่มค่าใหม่ทุกครั้งที่เริ่มเซิร์ฟเวอร์
+// (token เดิมจะใช้ไม่ได้หลังรีสตาร์ต) และบังคับให้ตั้งค่าใน production
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ต้องตั้งค่า JWT_SECRET ในไฟล์ .env ก่อนรันแบบ production");
+  }
+  JWT_SECRET = crypto.randomBytes(32).toString("hex");
+  console.warn("คำเตือน: ไม่พบ JWT_SECRET ใน .env ใช้ secret ชั่วคราวที่สุ่มขึ้นใหม่ (ต้องล็อกอินใหม่หลังรีสตาร์ต)");
+}
 
 function createToken(user) {
   const payload = Buffer.from(
@@ -36,7 +45,9 @@ function decodeToken(token) {
     .update(payload)
     .digest("base64url");
 
-  if (signature !== expectedSig) return null;
+  const sigBuf = Buffer.from(String(signature));
+  const expectedBuf = Buffer.from(expectedSig);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
 
   try {
     const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
@@ -52,10 +63,9 @@ function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   let token = null;
 
+  // รับ token เฉพาะจาก Authorization header (ไม่รับทาง query string เพราะไปติดใน log และประวัติเบราว์เซอร์)
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.substring(7).trim();
-  } else if (req.query && req.query.token) {
-    token = req.query.token;
   }
 
   if (token) {

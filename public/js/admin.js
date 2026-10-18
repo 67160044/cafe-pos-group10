@@ -579,7 +579,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const name = memberFormName.value.trim();
     const phone = memberFormPhone.value.trim();
     const points = Number(memberFormPoints.value) || 0;
-    const discountRate = parseFloat(memberFormDiscount.value) || 0.05;
+    const parsedDiscount = parseFloat(memberFormDiscount.value);
+    const discountRate = Number.isNaN(parsedDiscount) ? 0.05 : parsedDiscount;
 
     if (!name || !phone) {
       Auth.showToast("กรุณากรอกชื่อและเบอร์โทรศัพท์", "warning");

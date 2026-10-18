@@ -121,6 +121,12 @@ exports.registerMember = async (req, res) => {
       member: newMember,
     });
   } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        success: false,
+        error: "หมายเลขโทรศัพท์นี้เป็นสมาชิกอยู่แล้ว",
+      });
+    }
     console.error("Register Member Error:", err);
     return res.status(500).json({
       success: false,

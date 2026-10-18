@@ -77,9 +77,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function updateKPIs() {
     const total = menuList.length;
-    const inStock = menuList.filter((m) => Number(m.stock_quantity) >= 10).length;
-    const lowStock = menuList.filter((m) => Number(m.stock_quantity) > 0 && Number(m.stock_quantity) < 10).length;
-    const outOfStock = menuList.filter((m) => Number(m.stock_quantity) <= 0).length;
+    const inStock = menuList.filter((m) => Number(m.stockQuantity) >= 10).length;
+    const lowStock = menuList.filter((m) => Number(m.stockQuantity) > 0 && Number(m.stockQuantity) < 10).length;
+    const outOfStock = menuList.filter((m) => Number(m.stockQuantity) <= 0).length;
 
     kpiTotalMenus.textContent = total;
     kpiInStock.textContent = inStock;
@@ -94,8 +94,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const filtered = menuList.filter((item) => {
       const matchQuery = !query || item.name.toLowerCase().includes(query);
-      const matchCat = cat === "all" || String(item.category_id) === String(cat);
-      const stock = Number(item.stock_quantity || 0);
+      const matchCat = cat === "all" || String(item.categoryId) === String(cat);
+      const stock = Number(item.stockQuantity || 0);
 
       let matchStock = true;
       if (stockStatus === "low") {
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     menuTableBody.innerHTML = filtered
       .map((item) => {
-        const stock = Number(item.stock_quantity || 0);
+        const stock = Number(item.stockQuantity || 0);
         let statusBadge = `<span class="wn-stock-badge in-stock">พร้อมขาย</span>`;
         if (stock <= 0) {
           statusBadge = `<span class="wn-stock-badge out-of-stock">สินค้าหมด</span>`;
@@ -130,11 +130,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           statusBadge = `<span class="wn-stock-badge low-stock">ใกล้หมด</span>`;
         }
 
-        const catName = item.category_name || CAT_MAP[item.category_id] || "อื่น ๆ";
+        const catName = item.categoryName || CAT_MAP[item.categoryId] || "อื่น ๆ";
 
         return `
           <tr>
-            <td style="font-weight: 600; color: var(--wn-gray);">#${item.menu_id}</td>
+            <td style="font-weight: 600; color: var(--wn-gray);">#${item.menuId}</td>
             <td>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 20px;">${getDrinkEmoji(item.name)}</span>
@@ -146,10 +146,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             <td class="text-center" style="font-weight: 600;">${stock} แก้ว</td>
             <td>${statusBadge}</td>
             <td class="text-right">
-              <button type="button" class="wn-btn wn-btn-secondary btn-edit-menu" data-id="${item.menu_id}" style="padding: 4px 10px; font-size: 12px;">
+              <button type="button" class="wn-btn wn-btn-secondary btn-edit-menu" data-id="${item.menuId}" style="padding: 4px 10px; font-size: 12px;">
                 ✏️ แก้ไข
               </button>
-              <button type="button" class="wn-btn wn-btn-outline-danger btn-del-menu" data-id="${item.menu_id}" style="padding: 4px 8px; font-size: 12px;">
+              <button type="button" class="wn-btn wn-btn-outline-danger btn-del-menu" data-id="${item.menuId}" style="padding: 4px 8px; font-size: 12px;">
                 🗑️
               </button>
             </td>
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     menuTableBody.querySelectorAll(".btn-edit-menu").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.dataset.id);
-        const item = menuList.find((m) => m.menu_id === id);
+        const item = menuList.find((m) => m.menuId === id);
         if (!item) return;
         openEditModal(item);
       });
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     menuTableBody.querySelectorAll(".btn-del-menu").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.dataset.id);
-        const item = menuList.find((m) => m.menu_id === id);
+        const item = menuList.find((m) => m.menuId === id);
         if (!item) return;
         deleteMenu(item);
       });
@@ -202,12 +202,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function openEditModal(item) {
-    formMenuId.value = item.menu_id;
+    formMenuId.value = item.menuId;
     menuModalTitle.textContent = `แก้ไขเมนู: ${item.name}`;
     formName.value = item.name;
-    formCategory.value = item.category_id;
+    formCategory.value = item.categoryId;
     formPrice.value = Number(item.price);
-    formStock.value = Number(item.stock_quantity);
+    formStock.value = Number(item.stockQuantity);
     menuFormModal.classList.remove("hidden");
     formName.focus();
   }
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const branchId = Auth.getBranchId();
-    const res = await Auth.api("DELETE", `/api/menu/${item.menu_id}?branchId=${branchId}`);
+    const res = await Auth.api("DELETE", `/api/menu/${item.menuId}?branchId=${branchId}`);
     if (!res.ok) {
       Auth.showToast(res.error || "ไม่สามารถลบเมนูได้", "error");
       return;

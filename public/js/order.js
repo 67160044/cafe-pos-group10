@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const query = menuSearch.value.trim().toLowerCase();
 
     const filtered = menuList.filter((item) => {
-      const matchCat = cat === "all" || String(item.category_id) === String(cat);
+      const matchCat = cat === "all" || String(item.categoryId) === String(cat);
       const matchQuery = !query || item.name.toLowerCase().includes(query);
       return matchCat && matchQuery;
     });
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     productGrid.innerHTML = filtered
       .map((item) => {
-        const stock = Number(item.stock_quantity || 0);
+        const stock = Number(item.stockQuantity || 0);
         const isOutOfStock = stock <= 0;
         let stockBadge = `<span class="wn-stock-badge in-stock">สต็อก ${stock}</span>`;
         if (isOutOfStock) {
@@ -151,12 +151,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const inCartQty = cart
-          .filter((c) => c.menuId === item.menu_id)
+          .filter((c) => c.menuId === item.menuId)
           .reduce((sum, c) => sum + c.quantity, 0);
         const qtyBadge = inCartQty > 0 ? `<span class="wn-card-qty-badge">${inCartQty}</span>` : "";
 
         return `
-          <div class="wn-product-card ${isOutOfStock ? "out-of-stock" : ""}" data-id="${item.menu_id}">
+          <div class="wn-product-card ${isOutOfStock ? "out-of-stock" : ""}" data-id="${item.menuId}">
             ${qtyBadge}
             <div class="wn-product-thumb">
               <span class="wn-product-icon">${getDrinkEmoji(item.name)}</span>
@@ -177,8 +177,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     productGrid.querySelectorAll(".wn-product-card").forEach((card) => {
       card.addEventListener("click", () => {
         const id = Number(card.dataset.id);
-        const item = menuList.find((m) => m.menu_id === id);
-        if (!item || Number(item.stock_quantity) <= 0) return;
+        const item = menuList.find((m) => m.menuId === id);
+        if (!item || Number(item.stockQuantity) <= 0) return;
         openCustomizer(item);
       });
     });
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("customQtyPlus").addEventListener("click", () => {
-    const maxStock = Number(selectedProduct.stock_quantity || 999);
+    const maxStock = Number(selectedProduct.stockQuantity || 999);
     if (customState.quantity < maxStock) {
       customState.quantity++;
       customQtyVal.value = customState.quantity;
@@ -321,32 +321,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Check if duplicate item exists in cart
     const existingIndex = cart.findIndex(
-      (item) => item.menuId === selectedProduct.menu_id && item.desc === customizationDesc
+      (item) => item.menuId === selectedProduct.menuId && item.desc === customizationDesc
     );
 
     if (existingIndex > -1) {
       const newQty = cart[existingIndex].quantity + customState.quantity;
-      if (newQty > Number(selectedProduct.stock_quantity)) {
-        Auth.showToast(`จำนวนเกินสต็อกคงเหลือ (${selectedProduct.stock_quantity})`, "warning");
+      if (newQty > Number(selectedProduct.stockQuantity)) {
+        Auth.showToast(`จำนวนเกินสต็อกคงเหลือ (${selectedProduct.stockQuantity})`, "warning");
         return;
       }
       cart[existingIndex].quantity = newQty;
       cart[existingIndex].lineTotal = cart[existingIndex].quantity * unitPrice;
     } else {
       cart.push({
-        menuId: selectedProduct.menu_id,
+        menuId: selectedProduct.menuId,
         name: selectedProduct.name,
         desc: customizationDesc,
         unitPrice,
         quantity: customState.quantity,
         lineTotal: customState.quantity * unitPrice,
-        maxStock: Number(selectedProduct.stock_quantity),
+        maxStock: Number(selectedProduct.stockQuantity),
       });
     }
 
+    const addedName = selectedProduct.name;
     closeCustomModal();
     renderCart();
-    Auth.showToast(`เพิ่ม "${selectedProduct.name}" ลงในบิลแล้ว`, "info");
+    Auth.showToast(`เพิ่ม "${addedName}" ลงในบิลแล้ว`, "info");
   });
 
   // --- Cart Calculations & Rendering ---

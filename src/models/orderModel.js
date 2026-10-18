@@ -1,12 +1,14 @@
 const db = require("../config/db");
 
-exports.create = async (branchId, userId, paymentMethod, memberId = null, status = "pending") => {
-  const [result] = await db.query(
+exports.create = async (branchId, userId, paymentMethod, memberId = null, status = "pending", conn = db) => {
+  const [result] = await conn.query(
     "INSERT INTO orders (branch_id, user_id, member_id, payment_method, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
     [branchId, userId, memberId || null, paymentMethod, status]
   );
   return result.insertId;
 };
+
+const FIND_ALL_LIMIT = 500;
 
 exports.findAll = async () => {
   const [rows] = await db.query(`
@@ -16,12 +18,13 @@ exports.findAll = async () => {
     LEFT JOIN branch b ON o.branch_id = b.branch_id
     LEFT JOIN \`member\` m ON o.member_id = m.member_id
     ORDER BY o.order_id DESC
+    LIMIT ${FIND_ALL_LIMIT}
   `);
   return rows;
 };
 
-exports.addItem = async (orderId, menuId, quantity, unitPrice, notes = null) => {
-  await db.query(
+exports.addItem = async (orderId, menuId, quantity, unitPrice, notes = null, conn = db) => {
+  await conn.query(
     "INSERT INTO order_item (order_id, menu_id, quantity, unit_price, notes) VALUES (?, ?, ?, ?, ?)",
     [orderId, menuId, quantity, unitPrice, notes || null]
   );
@@ -94,4 +97,15 @@ exports.updateStatus = async (orderId, status) => {
     [status, Number(orderId)]
   );
   return result.affectedRows > 0;
+};
+
+/**
+ * ดึงสถานะและสาขาของออเดอร์ ใช้ตรวจสิทธิ์สาขาและลำดับสถานะก่อนอัปเดต
+ */
+exports.findStatusAndBranch = async (orderId) => {
+  const [rows] = await db.query(
+    "SELECT order_id, branch_id, status FROM orders WHERE order_id = ?",
+    [Number(orderId)]
+  );
+  return rows[0] || null;
 };

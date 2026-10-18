@@ -68,16 +68,16 @@ exports.getSalesReport = async ({ from, to, branchId, topFilter }) => {
 
   return {
     summary: {
-      total_sales: Number(summaryRows[0]?.total_sales || 0),
-      order_count: Number(summaryRows[0]?.order_count || 0),
+      totalSales: Number(summaryRows[0]?.total_sales || 0),
+      orderCount: Number(summaryRows[0]?.order_count || 0),
     },
-    by_branch: branchRows.map((r) => ({
-      branch_id: r.branch_id,
-      branch_name: r.branch_name,
+    byBranch: branchRows.map((r) => ({
+      branchId: r.branch_id,
+      branchName: r.branch_name,
       orders: Number(r.orders || 0),
       sales: Number(r.sales || 0),
     })),
-    top_menus: topRows.map((r) => ({
+    topMenus: topRows.map((r) => ({
       name: r.name,
       quantity: Number(r.quantity || 0),
       sales: Number(r.sales || 0),

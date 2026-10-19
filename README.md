@@ -4,6 +4,39 @@
 
 ---
 
+## เอกสารโครงงาน
+
+เอกสารทั้งหมดของโครงงานอยู่ในโฟลเดอร์ [`docs/`](docs/) ของ repository นี้ เอกสารรวมเล่มตาม `wk15` คือ `docs/project-report.pdf` และ `docs/project-report.docx`
+
+- [เอกสารรวมเล่มโครงงาน (PDF)](docs/project-report.pdf)
+- [เอกสารรวมเล่มโครงงาน (Word)](docs/project-report.docx)
+- [Team Charter (wk01)](docs/wk01-team-charter.md)
+- [Feasibility Study และ BPMN (wk02)](docs/wk02-feasibility-report.md)
+- [Requirements Document (wk03)](docs/wk03-requirements.md)
+- [User Stories และ Use Case (wk04)](docs/wk04-user-stories.md)
+- [Class Diagram (wk06)](docs/wk06-class-diagram.png)
+- [Object Diagram (wk06)](docs/wk06-object-diagram.png)
+- [ER Diagram (wk07)](docs/wk07-er-diagram.png)
+- [Database Schema (wk07)](docs/wk07-schema.sql)
+- [Sequence Diagram (wk09)](docs/wk09-sequence-diagram.png)
+- [Input/Output Design (wk10)](docs/wk10-input-output-design.docx)
+- [Wireframe (wk10)](docs/wk10-wireframe.docx)
+- [SRS (เอกสารเสริมหลัง wk10)](docs/wk10-srs.md)
+- [Architecture (wk11)](docs/wk11-architecture.md)
+- [Usability Testing (wk12)](docs/wk12-usability-testing.md)
+- [รายงานตรวจสอบคุณภาพและความปลอดภัย (wk14)](docs/wk14-quality-review.md)
+- AI Disclosure Form
+  - [wk05-ai-disclosure.md](docs/ai-disclosure/wk05-ai-disclosure.md)
+  - [wk07-ai-disclosure.md](docs/ai-disclosure/wk07-ai-disclosure.md)
+  - [wk09-ai-disclosure.md](docs/ai-disclosure/wk09-ai-disclosure.md)
+  - [wk10-ai-disclosure.md](docs/ai-disclosure/wk10-ai-disclosure.md)
+  - [wk11-ai-disclosure.md](docs/ai-disclosure/wk11-ai-disclosure.md)
+  - [wk12-ai-disclosure.md](docs/ai-disclosure/wk12-ai-disclosure.md)
+  - [wk13-ai-disclosure.md](docs/ai-disclosure/wk13-ai-disclosure.md)
+  - [wk14-ai-disclosure.md](docs/ai-disclosure/wk14-ai-disclosure.md)
+
+---
+
 ## 📸 ภาพตัวอย่างหน้าจอระบบ (User Interface Preview)
 
 ### 1. หน้าเข้าสู่ระบบ (Login & Quick Role Switcher)
@@ -77,6 +110,8 @@ DB_PASSWORD=รหัสผ่าน_MYSQL_ของคุณ
 DB_NAME=cafe_pos
 PORT=3000
 ```
+
+นอกจากนี้ให้ตั้งค่า `JWT_SECRET` ใน `.env` เป็นค่าสุ่มของตัวเอง (ห้ามใช้ค่าตัวอย่าง) วิธีสร้างค่าอยู่ในไฟล์ `.env.example` (ดูบรรทัดคอมเมนต์เหนือ `JWT_SECRET`)
 
 ### 3. เปิดบริการ MySQL (เลือกวิธีใดวิธีหนึ่ง)
 
